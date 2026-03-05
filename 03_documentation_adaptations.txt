@@ -996,5 +996,261 @@ NOUVEAU - Adapté à la législation tunisienne:
   TOTAL:                        114 tables
 
 ================================================================================
+SECTION 16: HIÉRARCHIE ORGANISATIONNELLE — GUIDE POUR LA GÉNÉRATION DE DONNÉES
+================================================================================
+
+16.1. VUE D'ENSEMBLE
+────────────────────
+  3 tables, 1 mécanisme:
+
+  ┌─────────────────────────────────────────────────────────────────────┐
+  │  SOCIETE (racine)                                                  │
+  │    └── SERVICE (arbre via SER_COD_SERV = parent)                  │
+  │          └── TYPE_SERV → TYPE_ORG (étiquette de classification)   │
+  │                                                                    │
+  │  PERSONNEL.COD_SERV → SERVICE.COD_SERV (affectation de l'agent)  │
+  └─────────────────────────────────────────────────────────────────────┘
+
+  - SOCIETE: entité racine (COD_SOC='01' = Ministère de la Santé)
+  - SERVICE: chaque nœud de l'organigramme (PK = COD_SOC + COD_SERV)
+  - TYPE_ORG: dictionnaire de classification (PK = TYP_ORG, VARCHAR2(4))
+  - Le parent d'un SERVICE est donné par SER_COD_SERV (NULL = racine)
+  - Le type/niveau d'un SERVICE est donné par TYPE_SERV → TYPE_ORG
+
+16.2. TYPE_ORG — TOUS LES CODES (23 entrées)
+─────────────────────────────────────────────
+  Codes de structure ministérielle (RANG 1-9):
+  ┌──────┬────────────────────────────────────┬──────┐
+  │ CODE │ LIBELLÉ                            │ RANG │
+  ├──────┼────────────────────────────────────┼──────┤
+  │ MIN  │ Ministère                          │  1   │
+  │ CAB  │ Cabinet                            │  2   │
+  │ IGS  │ Inspection Générale                │  3   │
+  │ DG   │ Direction Générale                 │  4   │
+  │ DIR  │ Direction                          │  5   │
+  │ SDIR │ Sous-Direction                     │  6   │
+  │ SERV │ Service                            │  7   │
+  │ BUR  │ Bureau                             │  8   │
+  │ UNIT │ Unité                              │  9   │
+  └──────┴────────────────────────────────────┴──────┘
+
+  Codes d'établissements sanitaires (RANG 10-16):
+  ┌──────┬────────────────────────────────────┬──────┐
+  │ DRS  │ Direction Régionale de la Santé    │ 10   │
+  │ CHU  │ Centre Hospitalo-Universitaire     │ 11   │
+  │ HR   │ Hôpital Régional                   │ 12   │
+  │ HC   │ Hôpital de Circonscription         │ 13   │
+  │ CSB  │ Centre de Santé de Base            │ 14   │
+  │ INST │ Institut                           │ 15   │
+  │ LAB  │ Laboratoire                        │ 16   │
+  └──────┴────────────────────────────────────┴──────┘
+
+  Codes de services internes hospitaliers (RANG 17-23):
+  ┌──────┬────────────────────────────────────┬──────┐
+  │ SMED │ Service Médical                    │ 17   │
+  │ SCHR │ Service Chirurgical                │ 18   │
+  │ STEC │ Plateau Technique                  │ 19   │
+  │ LABO │ Laboratoire Hospitalier            │ 20   │
+  │ SADM │ Service Administratif              │ 21   │
+  │ SGEN │ Service Général / Logistique       │ 22   │
+  │ CONS │ Consultation                       │ 23   │
+  └──────┴────────────────────────────────────┴──────┘
+
+16.3. ARBRE COMPLET DU SERVICE (TOUTES LES ENTRÉES)
+────────────────────────────────────────────────────
+  Ministère (MIN, parent=NULL)
+   ├── Cabinet du Ministre (CAB, parent=MIN)
+   ├── Inspection Générale (IGS, parent=MIN)
+   ├── DG Santé Publique (DG, parent=MIN)
+   │    ├── Dir. Soins de Santé de Base (DIR, parent=DGSP)
+   │    ├── Dir. Hygiène du Milieu (DIR, parent=DGSP)
+   │    └── Dir. Médecine Préventive (DIR, parent=DGSP)
+   ├── DG Services Communs (DG, parent=MIN)
+   │    ├── Dir. Ressources Humaines (DIR, parent=DGSC)
+   │    ├── Dir. Affaires Financières (DIR, parent=DGSC)
+   │    ├── Dir. Bâtiments et Equipements (DIR, parent=DGSC)
+   │    └── Dir. Organisation et Informatique (DIR, parent=DGSC)
+   ├── DG Structures Sanitaires Publiques (DG, parent=MIN)
+   │    ├── Dir. Hôpitaux (DIR, parent=DGSSP)
+   │    └── Dir. Pharmacie et Médicament (DIR, parent=DGSSP)
+   ├── DRS Tunis (DRS, parent=MIN)
+   │    ├── CHU Charles-Nicolle (CHU, parent=DRS11)
+   │    │    ├── Cardiologie (SMED)
+   │    │    ├── Dermatologie (SMED)
+   │    │    ├── Gastro-entérologie (SMED)
+   │    │    ├── Médecine Interne (SMED)
+   │    │    ├── Endocrinologie (SMED)
+   │    │    ├── Neurologie (SMED)
+   │    │    ├── Pédiatrie (SMED)
+   │    │    ├── Pneumologie (SMED)
+   │    │    ├── Rhumatologie (SMED)
+   │    │    ├── Psychiatrie (SMED)
+   │    │    ├── Néonatalogie (SMED)
+   │    │    ├── Médecine du Travail (SMED)
+   │    │    ├── Médecine Légale (SMED)
+   │    │    ├── Médecine Dentaire (SMED)
+   │    │    ├── Chirurgie Générale (SCHR)
+   │    │    ├── Ophtalmologie (SCHR)
+   │    │    ├── Orthopédie (SCHR)
+   │    │    ├── ORL (SCHR)
+   │    │    ├── Urologie (SCHR)
+   │    │    ├── Chirurgie Maxillo-faciale (SCHR)
+   │    │    ├── Urgences (STEC)
+   │    │    ├── Réanimation Médicale (STEC)
+   │    │    ├── Imagerie Médicale (STEC)
+   │    │    ├── Médecine Nucléaire (STEC)
+   │    │    ├── Bloc Opératoire (STEC)
+   │    │    ├── Hémodialyse (STEC)
+   │    │    ├── Labo Biochimie (LABO)
+   │    │    ├── Labo Hématologie (LABO)
+   │    │    ├── Labo Microbiologie (LABO)
+   │    │    ├── Labo Anatomopathologie (LABO)
+   │    │    ├── Labo Immunologie (LABO)
+   │    │    ├── Administration (SADM)
+   │    │    ├── Archives Médicales (SADM)
+   │    │    ├── Pharmacie Hospitalière (SADM)
+   │    │    ├── Banque du Sang (SADM)
+   │    │    ├── Accueil et Orientation (SADM)
+   │    │    ├── Sécurité (SGEN)
+   │    │    ├── Entretien et Hygiène (SGEN)
+   │    │    ├── Maintenance Technique (SGEN)
+   │    │    ├── Restauration (SGEN)
+   │    │    ├── Buanderie / Lingerie (SGEN)
+   │    │    └── Transport et Ambulances (SGEN)
+   │    └── (autres CHU de Tunis: La Rabta, Mongi-Slim, etc.)
+   ├── DRS Ariana (DRS, parent=MIN)
+   ├── DRS Ben Arous (DRS, parent=MIN)
+   ├── DRS Nabeul (DRS, parent=MIN)
+   │    ├── HR Nabeul (HR, parent=DRS21)
+   │    │    ├── Médecine Interne (SMED)
+   │    │    ├── Pédiatrie (SMED)
+   │    │    ├── Gynécologie-Obstétrique (SMED)
+   │    │    ├── Chirurgie Générale (SCHR)
+   │    │    ├── Orthopédie (SCHR)
+   │    │    ├── Urgences (STEC)
+   │    │    ├── Radiologie (STEC)
+   │    │    ├── Bloc Opératoire (STEC)
+   │    │    ├── Laboratoire (LABO)
+   │    │    ├── Pharmacie (SADM)
+   │    │    ├── Administration (SADM)
+   │    │    ├── Sécurité (SGEN)
+   │    │    ├── Entretien et Hygiène (SGEN)
+   │    │    ├── Maintenance (SGEN)
+   │    │    └── Restauration (SGEN)
+   │    ├── HC Grombalia (HC, parent=DRS21)
+   │    │    ├── Médecine Générale (CONS)
+   │    │    ├── Maternité (SMED)
+   │    │    ├── Urgences de Base (STEC)
+   │    │    ├── Petit Laboratoire (LABO)
+   │    │    ├── Pharmacie (SADM)
+   │    │    ├── Administration (SADM)
+   │    │    ├── Entretien (SGEN)
+   │    │    └── Sécurité (SGEN)
+   │    └── CSB Hammamet (CSB, parent=DRS21)
+   │         ├── Consultation Médecine Générale (CONS)
+   │         ├── Vaccination (CONS)
+   │         ├── Protection Maternelle et Infantile (CONS)
+   │         ├── Soins Infirmiers (CONS)
+   │         └── Administration (SADM)
+   ├── DRS Sousse (DRS, parent=MIN)
+   │    └── CHU Sahloul (CHU, parent=DRS51)
+   │         ├── (26 services internes — voir données SQL)
+   │         └── ...
+   └── DRS Sfax (DRS, parent=MIN)
+
+16.4. RÈGLES POUR LA GÉNÉRATION DE DONNÉES
+───────────────────────────────────────────
+  RÈGLE 1 — PARENTÉ (SER_COD_SERV)
+    Chaque SERVICE doit avoir un parent valide (sauf la racine MIN):
+    - SER_COD_SERV doit exister comme COD_SERV dans la même table
+    - Le parent doit être inséré AVANT l'enfant (sinon FK violation)
+    - Un seul nœud racine: SER_COD_SERV = NULL → COD_SERV = 'MIN'
+
+  RÈGLE 2 — CLASSIFICATION (TYPE_SERV)
+    Chaque SERVICE doit avoir un TYPE_SERV valide (FK → TYPE_ORG):
+    - TYPE_SERV doit être l'un des 23 codes de TYPE_ORG
+    - Le code ne doit PAS dépasser 4 caractères (VARCHAR2(4))
+
+  RÈGLE 3 — CLÉ PRIMAIRE (COD_SOC + COD_SERV)
+    - COD_SOC = '01' pour tous (un seul ministère)
+    - COD_SERV: VARCHAR2(10), unique, convention de nommage:
+      * Structure ministérielle: code abrégé (MIN, CAB, DRH, DGSP...)
+      * Établissement: préfixe type + ville (CHUCN, CHUSL, HRNAB...)
+      * Service interne: préfixe établissement + abrégé
+        (CN_CARD, CN_URG, SL_LBIO, HN_MINT, HG_URG, CB_CONS...)
+
+  RÈGLE 4 — HIÉRARCHIE ATTENDUE PAR NIVEAU
+    ┌────────────────────────────────────────────────────────────┐
+    │  Parent attendu         │  Enfants possibles              │
+    ├────────────────────────────────────────────────────────────┤
+    │  NULL (racine)          │  MIN                            │
+    │  MIN                    │  CAB, IGS, DG, DRS              │
+    │  DG                     │  DIR, SDIR                      │
+    │  DIR                    │  SDIR, SERV, BUR                │
+    │  DRS                    │  CHU, HR, HC, CSB, INST, LAB    │
+    │  CHU / HR               │  SMED, SCHR, STEC, LABO, SADM, │
+    │                         │  SGEN, CONS                     │
+    │  HC                     │  CONS, SMED, STEC, LABO, SADM,  │
+    │                         │  SGEN                           │
+    │  CSB                    │  CONS, SADM                     │
+    └────────────────────────────────────────────────────────────┘
+
+  RÈGLE 5 — SERVICES INTERNES PAR TYPE D'ÉTABLISSEMENT
+    ┌──────┬──────────────────────────────────────────────────────┐
+    │ CHU  │ SMED(10-15), SCHR(4-6), STEC(4-6), LABO(3-6),     │
+    │      │ SADM(3-5), SGEN(4-6) — Total: ~30-44 services      │
+    ├──────┼──────────────────────────────────────────────────────┤
+    │ HR   │ SMED(2-4), SCHR(1-3), STEC(2-3), LABO(1),         │
+    │      │ SADM(2-3), SGEN(3-5) — Total: ~11-19 services      │
+    ├──────┼──────────────────────────────────────────────────────┤
+    │ HC   │ CONS(1-2), SMED(1), STEC(1), LABO(0-1),           │
+    │      │ SADM(1-2), SGEN(1-2) — Total: ~5-10 services       │
+    ├──────┼──────────────────────────────────────────────────────┤
+    │ CSB  │ CONS(2-4), SADM(1) — Total: ~3-5 services          │
+    └──────┴──────────────────────────────────────────────────────┘
+
+  RÈGLE 6 — PERSONNEL.COD_SERV
+    - Chaque agent dans PERSONNEL a COD_SOC='01' et COD_SERV
+    - COD_SERV doit pointer vers un nœud FEUILLE de l'arbre
+      (le service où l'agent travaille réellement)
+    - Exemples:
+      * Chirurgien au CHU Charles-Nicolle → COD_SERV='CN_ORL'
+      * Femme de ménage au CHU Sahloul → COD_SERV='SL_ENTR'
+      * Agent de sécurité à l'HR Nabeul → COD_SERV='HN_SECU'
+      * Infirmière au CSB Hammamet → COD_SERV='CB_SINF'
+      * Comptable à la DRH centrale → COD_SERV='DRH'
+
+  RÈGLE 7 — REQUÊTE ORACLE POUR VÉRIFIER LA HIÉRARCHIE
+    SELECT LEVEL,
+           LPAD(' ', (LEVEL-1)*4) || COD_SERV || ' (' || TYPE_SERV || ')' AS arbre,
+           LIB_SERV
+    FROM   SERVICE
+    WHERE  COD_SOC = '01'
+    START WITH SER_COD_SERV IS NULL
+    CONNECT BY PRIOR COD_SERV = SER_COD_SERV
+    ORDER SIBLINGS BY COD_SERV;
+
+16.5. CORRECTIONS APPLIQUÉES (cette section)
+─────────────────────────────────────────────
+  a) SERVICE.TYPE_SERV: VARCHAR2(2) → VARCHAR2(4)
+     Raison: les codes TYPE_ORG comme 'MIN', 'CAB', 'DRS', 'CHU',
+     'SMED', 'SCHR', 'STEC', 'LABO', 'SADM', 'SGEN', 'CONS'
+     font 3-4 caractères, ne rentrent pas dans VARCHAR2(2).
+     Impact: 01_ddl_tables_sante_tunisie.sql ligne ~771.
+
+  b) 7 nouveaux TYPE_ORG ajoutés (RANG 17-23):
+     SMED, SCHR, STEC, LABO, SADM, SGEN, CONS
+     Pour classifier les services internes des établissements.
+
+  c) ~100 nouvelles entrées SERVICE ajoutées:
+     - 1 CHU complet (Charles-Nicolle): 41 services internes
+     - 1 CHU complet (Sahloul Sousse): 26 services internes
+     - 1 HR (Nabeul): 15 services internes
+     - 1 HC (Grombalia): 8 services internes
+     - 1 CSB (Hammamet): 5 services internes
+     Sources: Wikipedia (CHU Charles-Nicolle, CHU Sahloul,
+              Établissements sanitaires en Tunisie, Santé en Tunisie)
+
+================================================================================
 FIN DE LA DOCUMENTATION
 ================================================================================

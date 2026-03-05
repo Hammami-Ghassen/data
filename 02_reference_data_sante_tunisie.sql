@@ -515,6 +515,14 @@ INSERT INTO TYPE_ORG (TYP_ORG, LIB_TYP_ORG, LIB_TYP_ORG_A, RANG) VALUES ('HC', '
 INSERT INTO TYPE_ORG (TYP_ORG, LIB_TYP_ORG, LIB_TYP_ORG_A, RANG) VALUES ('CSB', 'Centre de Santé de Base', 'مركز الصحة الأساسية', 14);
 INSERT INTO TYPE_ORG (TYP_ORG, LIB_TYP_ORG, LIB_TYP_ORG_A, RANG) VALUES ('INST', 'Institut', 'المعهد', 15);
 INSERT INTO TYPE_ORG (TYP_ORG, LIB_TYP_ORG, LIB_TYP_ORG_A, RANG) VALUES ('LAB', 'Laboratoire', 'المخبر', 16);
+-- Types internes des établissements sanitaires (services hospitaliers)
+INSERT INTO TYPE_ORG (TYP_ORG, LIB_TYP_ORG, LIB_TYP_ORG_A, RANG) VALUES ('SMED', 'Service Médical', 'مصلحة طبية', 17);
+INSERT INTO TYPE_ORG (TYP_ORG, LIB_TYP_ORG, LIB_TYP_ORG_A, RANG) VALUES ('SCHR', 'Service Chirurgical', 'مصلحة جراحية', 18);
+INSERT INTO TYPE_ORG (TYP_ORG, LIB_TYP_ORG, LIB_TYP_ORG_A, RANG) VALUES ('STEC', 'Plateau Technique', 'القسم التقني', 19);
+INSERT INTO TYPE_ORG (TYP_ORG, LIB_TYP_ORG, LIB_TYP_ORG_A, RANG) VALUES ('LABO', 'Laboratoire Hospitalier', 'مخبر استشفائي', 20);
+INSERT INTO TYPE_ORG (TYP_ORG, LIB_TYP_ORG, LIB_TYP_ORG_A, RANG) VALUES ('SADM', 'Service Administratif', 'مصلحة إدارية', 21);
+INSERT INTO TYPE_ORG (TYP_ORG, LIB_TYP_ORG, LIB_TYP_ORG_A, RANG) VALUES ('SGEN', 'Service Général / Logistique', 'مصلحة عامة / لوجستية', 22);
+INSERT INTO TYPE_ORG (TYP_ORG, LIB_TYP_ORG, LIB_TYP_ORG_A, RANG) VALUES ('CONS', 'Consultation', 'عيادة', 23);
 
 -- ============================================================================
 -- 15. CATEG: Classification niveau 1 (nature des grilles)
@@ -858,6 +866,253 @@ INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_S
 ) VALUES ('01', 'DRS51', 'MIN', 'DRS Sousse', 'DRS', 'الإدارة الجهوية للصحة بسوسة');
 INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
 ) VALUES ('01', 'DRS61', 'MIN', 'DRS Sfax', 'DRS', 'الإدارة الجهوية للصحة بصفاقس');
+
+-- ============================================================================
+-- CHU Charles-Nicolle de Tunis (sous DRS Tunis)
+-- Source: Wikipedia - Organisation du CHU Charles-Nicolle
+-- ============================================================================
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CHUCN', 'DRS11', 'CHU Charles-Nicolle de Tunis', 'CHU', 'المستشفى الجامعي شارل نيكول بتونس');
+
+-- Services médicaux (SMED)
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_CARD', 'CHUCN', 'Cardiologie', 'SMED', 'أمراض القلب');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_DERM', 'CHUCN', 'Dermatologie', 'SMED', 'الأمراض الجلدية');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_GAST', 'CHUCN', 'Gastro-entérologie', 'SMED', 'أمراض الجهاز الهضمي');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_MINT', 'CHUCN', 'Médecine Interne', 'SMED', 'الطب الباطني');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_ENDO', 'CHUCN', 'Endocrinologie', 'SMED', 'أمراض الغدد');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_NEUR', 'CHUCN', 'Neurologie', 'SMED', 'أمراض الأعصاب');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_PEDI', 'CHUCN', 'Pédiatrie', 'SMED', 'طب الأطفال');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_PNEU', 'CHUCN', 'Pneumologie', 'SMED', 'أمراض الرئة');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_RHUM', 'CHUCN', 'Rhumatologie', 'SMED', 'أمراض المفاصل');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_PSYC', 'CHUCN', 'Psychiatrie', 'SMED', 'الطب النفسي');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_NEON', 'CHUCN', 'Néonatalogie', 'SMED', 'طب حديثي الولادة');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_MTRAV', 'CHUCN', 'Médecine du Travail', 'SMED', 'طب الشغل');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_MLEG', 'CHUCN', 'Médecine Légale', 'SMED', 'الطب الشرعي');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_DENT', 'CHUCN', 'Médecine Dentaire', 'SMED', 'طب الأسنان');
+
+-- Services chirurgicaux (SCHR)
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_CHGE', 'CHUCN', 'Chirurgie Générale', 'SCHR', 'الجراحة العامة');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_OPHT', 'CHUCN', 'Ophtalmologie', 'SCHR', 'طب العيون');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_ORTH', 'CHUCN', 'Orthopédie', 'SCHR', 'جراحة العظام');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_ORL', 'CHUCN', 'ORL', 'SCHR', 'أنف أذن حنجرة');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_UROL', 'CHUCN', 'Urologie', 'SCHR', 'جراحة المسالك البولية');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_MAXF', 'CHUCN', 'Chirurgie Maxillo-faciale', 'SCHR', 'جراحة الفك والوجه');
+
+-- Plateau technique (STEC)
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_URG', 'CHUCN', 'Urgences', 'STEC', 'الاستعجالي');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_REAM', 'CHUCN', 'Réanimation Médicale', 'STEC', 'الإنعاش الطبي');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_IMAG', 'CHUCN', 'Imagerie Médicale / Radiologie', 'STEC', 'التصوير الطبي');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_NUCL', 'CHUCN', 'Médecine Nucléaire', 'STEC', 'الطب النووي');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_BLOC', 'CHUCN', 'Bloc Opératoire', 'STEC', 'غرفة العمليات');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_HEMO', 'CHUCN', 'Hémodialyse', 'STEC', 'تصفية الدم');
+
+-- Laboratoires (LABO)
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_LBIO', 'CHUCN', 'Laboratoire de Biochimie', 'LABO', 'مخبر الكيمياء الحيوية');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_LHEM', 'CHUCN', 'Laboratoire d''Hématologie', 'LABO', 'مخبر أمراض الدم');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_LMIC', 'CHUCN', 'Laboratoire de Microbiologie', 'LABO', 'مخبر الأحياء الدقيقة');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_LANA', 'CHUCN', 'Laboratoire d''Anatomopathologie', 'LABO', 'مخبر التشريح المرضي');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_LIMM', 'CHUCN', 'Laboratoire d''Immunologie', 'LABO', 'مخبر المناعة');
+
+-- Services administratifs (SADM)
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_ADM', 'CHUCN', 'Administration', 'SADM', 'الإدارة');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_ARCH', 'CHUCN', 'Archives Médicales', 'SADM', 'الأرشيف الطبي');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_PHAR', 'CHUCN', 'Pharmacie Hospitalière', 'SADM', 'صيدلية المستشفى');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_BSNG', 'CHUCN', 'Banque du Sang', 'SADM', 'بنك الدم');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_ACCU', 'CHUCN', 'Accueil et Orientation', 'SADM', 'الاستقبال والتوجيه');
+
+-- Services généraux / logistique (SGEN)
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_SECU', 'CHUCN', 'Sécurité', 'SGEN', 'الأمن');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_ENTR', 'CHUCN', 'Entretien et Hygiène', 'SGEN', 'النظافة والصيانة');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_MAIN', 'CHUCN', 'Maintenance Technique', 'SGEN', 'الصيانة التقنية');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_REST', 'CHUCN', 'Restauration', 'SGEN', 'المطعم');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_BUAN', 'CHUCN', 'Buanderie / Lingerie', 'SGEN', 'المغسلة');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CN_TRSP', 'CHUCN', 'Transport et Ambulances', 'SGEN', 'النقل والإسعاف');
+
+-- ============================================================================
+-- CHU Sahloul de Sousse (sous DRS Sousse)
+-- Source: Wikipedia - Services du CHU Sahloul
+-- ============================================================================
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CHUSL', 'DRS51', 'CHU Sahloul de Sousse', 'CHU', 'المستشفى الجامعي سهلول بسوسة');
+
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_CARD', 'CHUSL', 'Cardiologie', 'SMED', 'أمراض القلب');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_NEPH', 'CHUSL', 'Néphrologie', 'SMED', 'أمراض الكلى');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_PEDI', 'CHUSL', 'Pédiatrie', 'SMED', 'طب الأطفال');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_NRPH', 'CHUSL', 'Neurophysiologie', 'SMED', 'فيزيولوجيا الأعصاب');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_MPHY', 'CHUSL', 'Médecine Physique', 'SMED', 'الطب الطبيعي');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_DENT', 'CHUSL', 'Médecine Dentaire', 'SMED', 'طب الأسنان');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_CCVT', 'CHUSL', 'Chirurgie Cardio-vasculaire', 'SCHR', 'جراحة القلب والأوعية');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_NRCH', 'CHUSL', 'Neurochirurgie', 'SCHR', 'جراحة الأعصاب');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_UROL', 'CHUSL', 'Urologie', 'SCHR', 'جراحة المسالك البولية');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_ORTH', 'CHUSL', 'Orthopédie', 'SCHR', 'جراحة العظام');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_MAXF', 'CHUSL', 'Chirurgie Maxillo-faciale', 'SCHR', 'جراحة الفك والوجه');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_URG', 'CHUSL', 'Urgences', 'STEC', 'الاستعجالي');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_REAM', 'CHUSL', 'Réanimation Médicale', 'STEC', 'الإنعاش الطبي');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_REAC', 'CHUSL', 'Réanimation Chirurgicale', 'STEC', 'الإنعاش الجراحي');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_RADI', 'CHUSL', 'Radiologie', 'STEC', 'التصوير الطبي');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_NUCL', 'CHUSL', 'Médecine Nucléaire', 'STEC', 'الطب النووي');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_HEMO', 'CHUSL', 'Hémodialyse', 'STEC', 'تصفية الدم');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_LBAC', 'CHUSL', 'Laboratoire Bactériologie', 'LABO', 'مخبر البكتيريولوجيا');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_LBIO', 'CHUSL', 'Laboratoire Biochimie', 'LABO', 'مخبر الكيمياء الحيوية');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_LHEM', 'CHUSL', 'Laboratoire Hématologie', 'LABO', 'مخبر أمراض الدم');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_PHAR', 'CHUSL', 'Pharmacie', 'SADM', 'الصيدلية');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_BSNG', 'CHUSL', 'Banque du Sang', 'SADM', 'بنك الدم');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_ADM', 'CHUSL', 'Administration', 'SADM', 'الإدارة');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_SECU', 'CHUSL', 'Sécurité', 'SGEN', 'الأمن');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_ENTR', 'CHUSL', 'Entretien et Hygiène', 'SGEN', 'النظافة والصيانة');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_MAIN', 'CHUSL', 'Maintenance Technique', 'SGEN', 'الصيانة التقنية');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_REST', 'CHUSL', 'Restauration', 'SGEN', 'المطعم');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'SL_TRSP', 'CHUSL', 'Transport et Ambulances', 'SGEN', 'النقل والإسعاف');
+
+-- ============================================================================
+-- HR Nabeul - Hôpital Régional (sous DRS Nabeul, 2ème ligne)
+-- Structure réduite par rapport au CHU
+-- ============================================================================
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'HRNAB', 'DRS21', 'Hôpital Régional de Nabeul', 'HR', 'المستشفى الجهوي بنابل');
+
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'HN_MINT', 'HRNAB', 'Médecine Interne', 'SMED', 'الطب الباطني');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'HN_PEDI', 'HRNAB', 'Pédiatrie', 'SMED', 'طب الأطفال');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'HN_GYOB', 'HRNAB', 'Gynécologie-Obstétrique', 'SMED', 'أمراض النساء والتوليد');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'HN_CHGE', 'HRNAB', 'Chirurgie Générale', 'SCHR', 'الجراحة العامة');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'HN_ORTH', 'HRNAB', 'Orthopédie', 'SCHR', 'جراحة العظام');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'HN_URG', 'HRNAB', 'Urgences', 'STEC', 'الاستعجالي');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'HN_RADI', 'HRNAB', 'Radiologie', 'STEC', 'التصوير الطبي');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'HN_BLOC', 'HRNAB', 'Bloc Opératoire', 'STEC', 'غرفة العمليات');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'HN_LABO', 'HRNAB', 'Laboratoire', 'LABO', 'المخبر');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'HN_PHAR', 'HRNAB', 'Pharmacie', 'SADM', 'الصيدلية');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'HN_ADM', 'HRNAB', 'Administration', 'SADM', 'الإدارة');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'HN_SECU', 'HRNAB', 'Sécurité', 'SGEN', 'الأمن');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'HN_ENTR', 'HRNAB', 'Entretien et Hygiène', 'SGEN', 'النظافة والصيانة');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'HN_MAIN', 'HRNAB', 'Maintenance', 'SGEN', 'الصيانة');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'HN_REST', 'HRNAB', 'Restauration', 'SGEN', 'المطعم');
+
+-- ============================================================================
+-- HC Grombalia - Hôpital de Circonscription (sous DRS Nabeul, 1er ligne)
+-- Structure minimale
+-- ============================================================================
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'HCGRM', 'DRS21', 'Hôpital de Circonscription de Grombalia', 'HC', 'المستشفى المحلي بقرمبالية');
+
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'HG_MGEN', 'HCGRM', 'Médecine Générale', 'CONS', 'الطب العام');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'HG_MATR', 'HCGRM', 'Maternité', 'SMED', 'التوليد');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'HG_URG', 'HCGRM', 'Urgences de Base', 'STEC', 'الاستعجالي');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'HG_LABO', 'HCGRM', 'Petit Laboratoire', 'LABO', 'المخبر');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'HG_PHAR', 'HCGRM', 'Pharmacie', 'SADM', 'الصيدلية');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'HG_ADM', 'HCGRM', 'Administration', 'SADM', 'الإدارة');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'HG_ENTR', 'HCGRM', 'Entretien', 'SGEN', 'النظافة');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'HG_SECU', 'HCGRM', 'Sécurité', 'SGEN', 'الأمن');
+
+-- ============================================================================
+-- CSB Hammamet - Centre de Santé de Base (sous DRS Nabeul, 1er ligne)
+-- Structure très simple
+-- ============================================================================
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CSBHM', 'DRS21', 'CSB Hammamet', 'CSB', 'مركز الصحة الأساسية بالحمامات');
+
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CB_CONS', 'CSBHM', 'Consultation Médecine Générale', 'CONS', 'عيادة الطب العام');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CB_VACC', 'CSBHM', 'Vaccination', 'CONS', 'التلقيح');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CB_PMI', 'CSBHM', 'Protection Maternelle et Infantile', 'CONS', 'حماية الأم والطفل');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CB_SINF', 'CSBHM', 'Soins Infirmiers', 'CONS', 'التمريض');
+INSERT INTO SERVICE (COD_SOC, COD_SERV, SER_COD_SERV, LIB_SERV, TYPE_SERV, LIB_SERV_A
+) VALUES ('01', 'CB_ADM', 'CSBHM', 'Administration', 'SADM', 'الإدارة');
 
 -- ============================================================================
 -- 26. PRM_LIEU_GEOGRAPHIQUE: Lieux géographiques (exemples)

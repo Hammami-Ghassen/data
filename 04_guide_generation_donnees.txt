@@ -1,0 +1,1218 @@
+################################################################################
+#                                                                              #
+#     GUIDE COMPLET DE GÉNÉRATION DE DONNÉES                                  #
+#     GRH — Ministère de la Santé Publique de Tunisie                         #
+#                                                                              #
+#     115 tables | 3 modules + UTILISATEUR                                    #
+#     Oracle 11g — Schéma GRH_BPC                                            #
+#     Généré: 2026-03-05                                                      #
+#                                                                              #
+################################################################################
+
+================================================================================
+TABLE DES MATIÈRES
+================================================================================
+  1.  Vue d'ensemble des modules
+  2.  Ordre global d'insertion (toutes les 115 tables)
+  3.  Graphe de dépendances FK (par PART)
+  4.  MODULE 1 — Base du Personnel (44 tables) — Workflow détaillé
+  5.  MODULE 2 — Congé et Pointage (34 tables) — Workflow détaillé
+  6.  MODULE 3 — Recrutement et Concours (36 tables) — Workflow détaillé
+  7.  TABLE UTILISATEUR (1 table) — Workflow détaillé
+  8.  Référence rapide: Types, tailles, valeurs admises
+  9.  Hiérarchie organisationnelle (SERVICE/TYPE_ORG) — Rappel synthétique
+  10. Exemples INSERT par workflow
+  11. Erreurs fréquentes et solutions
+
+================================================================================
+SECTION 1: VUE D'ENSEMBLE DES MODULES
+================================================================================
+
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │                        ARCHITECTURE GRH                              │
+  │                                                                      │
+  │  MODULE 1: BASE DU PERSONNEL (44 tables)                            │
+  │    PART 1: 24 tables de référence indépendantes                     │
+  │    PART 2:  7 tables classification (CATEG→CATEGORIE→GRADE)         │
+  │    PART 3:  1 table SOCIETE (racine organisationnelle)              │
+  │    PART 4:  2 tables SERVICE + PERSONNEL (noyau central)            │
+  │    PART 5: 10 tables enfants de PERSONNEL                           │
+  │                                                                      │
+  │  MODULE 2: CONGÉ ET POINTAGE (34 tables)                            │
+  │    PART 6A: 12 tables de référence congé/pointage                   │
+  │    PART 6B:  5 tables régimes et shifts (liées à SOCIETE)           │
+  │    PART 6C:  3 tables motifs de congé                               │
+  │    PART 6D:  5 tables soldes et planning congé                      │
+  │    PART 6E:  3 tables demandes de congé                             │
+  │    PART 6F:  6 tables pointage et présence                          │
+  │                                                                      │
+  │  MODULE 3: RECRUTEMENT ET CONCOURS (36 tables)                      │
+  │    PART 7A:  7 tables de référence recrutement                      │
+  │    PART 7B:  7 tables principales (avis, concours, candidats)       │
+  │    PART 7C:  5 tables détails de l'avis                             │
+  │    PART 7D:  2 tables concours-épreuves                             │
+  │    PART 7E:  8 tables détails candidat                              │
+  │    PART 7F:  7 tables évaluation et stages                          │
+  │                                                                      │
+  │  PART 8: UTILISATEUR (1 table)                                      │
+  │    Authentification, rôles, FK vers PERSONNEL + FICHE_CANDIDAT      │
+  └────────────────────────────────────────────────────────────────────────┘
+
+  Table pivot: PERSONNEL — utilisée par les 3 modules
+  Constante globale: COD_SOC = '01' (un seul ministère)
+
+
+================================================================================
+SECTION 2: ORDRE GLOBAL D'INSERTION (115 TABLES)
+================================================================================
+
+  INSÉREZ LES DONNÉES DANS CET ORDRE EXACT pour éviter toute violation FK.
+  Les tables au même niveau (même numéro) sont indépendantes entre elles
+  et peuvent être insérées en parallèle.
+
+  ── PHASE 1: Tables de référence sans aucune FK ──────────────────────────
+
+  Niveau  1: GOUVERNORAT
+  Niveau  1: PAYS
+  Niveau  1: TYP_CATEGORIE
+  Niveau  1: TYPE_ORG
+  Niveau  1: ETAT_PAIE
+  Niveau  1: STATUT
+  Niveau  1: ECHELON
+  Niveau  1: LISTE_DOMAINE
+  Niveau  1: PRM_LIEU_GEOGRAPHIQUE
+  Niveau  1: PRM_MILITAIRE
+  Niveau  1: GROUPE_SANGUIN
+  Niveau  1: PARAM_MVT
+  Niveau  1: FILLIERE
+  Niveau  1: ACTIVITE_FAMILLE
+  Niveau  1: AXE
+  Niveau  1: FILLIERE_POSTE
+  Niveau  1: CATEG
+  Niveau  1: TYP_CONGE
+  Niveau  1: REGIME_CONGE
+  Niveau  1: CYCLE_CONGE
+  Niveau  1: JOUR_SEMAINE
+  Niveau  1: CYCLE_POINTAGE
+  Niveau  1: TYP_AUTORISATION
+  Niveau  1: VILLE
+  Niveau  1: TYPE_BONIFICATION
+  Niveau  1: MODELE_EVALUATION
+  Niveau  1: EPREUVE
+  Niveau  1: LISTE_DIVERS
+  Niveau  1: VALEUR_CRITERE
+
+  ── PHASE 2: Tables avec FK vers Phase 1 uniquement ─────────────────────
+
+  Niveau  2: DELEGATION              (FK → GOUVERNORAT)
+  Niveau  2: PARAM_NIVEAU            (FK implicite → LISTE_DOMAINE)
+  Niveau  2: NATURE_RECRUT           (FK implicite → STATUT)
+  Niveau  2: MOTIF_SORT              (FK implicite → PARAM_MVT)
+  Niveau  2: TYPE_DEPART             (FK → PARAM_MVT)
+  Niveau  2: AFFECTATION             (pas de FK déclarée, mais logique)
+  Niveau  2: FONCTIONS               (pas de FK déclarée)
+  Niveau  2: AFFELIATION             (pas de FK déclarée)
+  Niveau  2: CODE_AFFILIATION        (pas de FK déclarée)
+  Niveau  2: CATEGORIE               (FK → CATEG, TYP_CATEGORIE)
+  Niveau  2: METIER                  (FK → AXE)
+  Niveau  2: CONDITION_CONGE         (FK → REGIME_CONGE)
+  Niveau  2: CRITERE_CYCLE_CONGE     (FK → CYCLE_CONGE)
+  Niveau  2: JOURS_FERIERS           (pas de FK, mais logiquement après Phase 1)
+  Niveau  2: DATE_FERIERS            (lien logique → JOURS_FERIERS)
+  Niveau  2: MOTIF_J                 (FK → TYP_CONGE)
+  Niveau  2: SALLE                   (pas de FK déclarée)
+
+  ── PHASE 3: Tables avec FK vers Phase 2 ────────────────────────────────
+
+  Niveau  3: LOCALITE               (FK → GOUVERNORAT, DELEGATION)
+  Niveau  3: GRADE                  (FK → CATEGORIE, TYP_CATEGORIE)
+  Niveau  3: CRITERE_CONGE          (FK → CONDITION_CONGE)
+  Niveau  3: JUSTIF_MOTIF           (FK → MOTIF_J)
+  Niveau  3: PLAF_MOTIF_CNG         (FK → MOTIF_J)
+
+  ── PHASE 4: POSTE_TRAV et SOCIETE ──────────────────────────────────────
+
+  Niveau  4: POSTE_TRAV             (FK → FILLIERE_POSTE, METIER)
+  Niveau  4: SOCIETE                (pas de FK déclarée)
+
+  ── PHASE 5: Tables liées à SOCIETE ─────────────────────────────────────
+
+  Niveau  5: SERVICE                (FK → TYPE_ORG, self-ref SER_COD_SERV)
+  Niveau  5: REGIME                 (FK → SOCIETE)
+  Niveau  5: SHIF                   (FK → SOCIETE)
+  Niveau  5: CARTE_POINT            (logique → SOCIETE)
+  Niveau  5: CALANDRIER             (logique → SOCIETE)
+  Niveau  5: CONSEIL_ADMINISTRATION (FK → SOCIETE)
+  Niveau  5: REGIME_REGIME          (FK → CYCLE_POINTAGE)
+  Niveau  5: AVIS                   (logique → SOCIETE)
+
+  ── PHASE 6: PERSONNEL (dépend de beaucoup de tables) ───────────────────
+
+  Niveau  6: TYP_ADM_TECH          (FK → GRADE, FILLIERE, POSTE_TRAV)
+  Niveau  6: SHIFT_REG             (FK → SHIF)
+  Niveau  6: LINE_AVIS             (FK → AVIS)
+  Niveau  6: PERSONNEL             (FK → SOCIETE, SERVICE, CATEGORIE, GRADE,
+                                     STATUT, ETAT_PAIE, ECHELON, MOTIF_SORT,
+                                     AFFECTATION, PARAM_NIVEAU, PAYS,
+                                     GROUPE_SANGUIN, PRM_MILITAIRE,
+                                     LISTE_DOMAINE, TYPE_DEPART,
+                                     PRM_LIEU_GEOGRAPHIQUE, NATURE_RECRUT,
+                                     POSTE_TRAV)
+
+  ── PHASE 7: Tables enfants de PERSONNEL ─────────────────────────────────
+
+  Niveau  7: FAMILLE                (FK → PERSONNEL, ACTIVITE_FAMILLE)
+  Niveau  7: ADR_PERS              (FK → SOCIETE, GOUVERNORAT, PERSONNEL*)
+  Niveau  7: RENSEIGNEMENT_PERS    (FK → PERSONNEL)
+  Niveau  7: COMPTE_PERS           (FK → PERSONNEL)
+  Niveau  7: CONTRAT               (FK → PERSONNEL)
+  Niveau  7: MOUVEMENT_PERS        (FK → PERSONNEL) *pas de FK déclarée
+  Niveau  7: AFFIL_PERS            (FK → PERSONNEL, CODE_AFFILIATION)
+  Niveau  7: ATTEST_TRAV           (FK implicite → PERSONNEL)
+  Niveau  7: SOLD_CNG              (FK → PERSONNEL, TYP_CONGE)
+  Niveau  7: PLANING_CNG           (FK → PERSONNEL, TYP_CONGE)
+  Niveau  7: RECUP_SOLD_CNG        (FK → PERSONNEL)
+  Niveau  7: DEM_CNG               (FK → PERSONNEL, MOTIF_J)
+  Niveau  7: PERS_CARTE            (FK → PERSONNEL)
+  Niveau  7: AUTORISATION_SORT     (FK → PERSONNEL, TYP_AUTORISATION)
+  Niveau  7: POINTER               (FK → PERSONNEL)
+  Niveau  7: POINTER_IND           (pas de FK déclarée)
+  Niveau  7: RETARD_JOURNEE        (FK → PERSONNEL)
+  Niveau  7: CAL_PERS              (FK → PERSONNEL, MOTIF_J)
+  Niveau  7: CONCOURS              (FK → LISTE_DOMAINE, AVIS)
+  Niveau  7: FICHE_CANDIDAT        (FK → VILLE, TYPE_BONIFICATION, PAYS)
+  Niveau  7: LIGNE_DIR             (FK → POSTE_TRAV)
+  Niveau  7: PERSONNEL_RECRUT      (pas de FK déclarée)
+
+  ── PHASE 8: Tables de détail ────────────────────────────────────────────
+
+  Niveau  8: DETAIL_PLANING_CNG    (FK → PLANING_CNG)
+  Niveau  8: VERIF_PLANING_CNG     (FK → PLANING_CNG)
+  Niveau  8: JUSTIF_DEM_CNG        (FK → DEM_CNG)
+  Niveau  8: INTERIM_CNG           (FK → DEM_CNG)
+  Niveau  8: DETAIL_CONTRAT        (FK → CONTRAT)
+  Niveau  8: STAGE                 (FK → PERSONNEL)
+  Niveau  8: LINE_CONCOURS         (FK → EPREUVE, CONCOURS)
+  Niveau  8: SALLE_CONCOURS        (FK → SALLE, CONCOURS)
+  Niveau  8: DIPLOME_AVIS          (FK → PARAM_NIVEAU, AVIS)
+  Niveau  8: DIVERS_AVIS           (FK → AVIS, LISTE_DIVERS)
+  Niveau  8: FORM_AVIS             (FK → AVIS)
+  Niveau  8: DOCUMENT_AVIS         (FK → LINE_AVIS)
+  Niveau  8: DET_LINE_AVIS         (pas de FK déclarée)
+  Niveau  8: COMPETENCE_CANDIDAT   (FK → FICHE_CANDIDAT)
+  Niveau  8: FORM_CAND             (FK → FICHE_CANDIDAT)
+  Niveau  8: FAMILLE_CANDIDAT      (FK → FICHE_CANDIDAT, ACTIVITE_FAMILLE)
+  Niveau  8: EXPERIENCE_CAND       (FK → FICHE_CANDIDAT, LISTE_DOMAINE)
+  Niveau  8: DOC_CAND              (FK → FICHE_CANDIDAT)
+  Niveau  8: DET_FICHE_CANDIDAT    (FK → FICHE_CANDIDAT)
+  Niveau  8: CAND_DIPLOM           (FK → FICHE_CANDIDAT, PARAM_NIVEAU)
+  Niveau  8: DIVERS_CAND           (FK → FICHE_CANDIDAT, LISTE_DIVERS)
+  Niveau  8: DIPLOME_DIR           (FK → LIGNE_DIR, PARAM_NIVEAU)
+  Niveau  8: DIVERS_DIR            (FK → LIGNE_DIR, LISTE_DIVERS)
+  Niveau  8: FICHE_EVAL_RECRU      (FK → CONCOURS, FICHE_CANDIDAT, MODELE_EVALUATION)
+
+  ── PHASE 9: Tables de sous-détail ──────────────────────────────────────
+
+  Niveau  9: DET_FICHE_EVAL_RECRU  (FK → FICHE_EVAL_RECRU)
+  Niveau  9: FICHE_EVAL_STAGE      (FK → STAGE, MODELE_EVALUATION)
+
+  ── PHASE 10: Tables finales ─────────────────────────────────────────────
+
+  Niveau 10: DET_EVAL_STAGE        (FK → FICHE_EVAL_STAGE, VALEUR_CRITERE)
+  Niveau 10: UTILISATEUR           (FK → SOCIETE, PERSONNEL, FICHE_CANDIDAT)
+
+
+================================================================================
+SECTION 3: GRAPHE DE DÉPENDANCES FK (PAR PART)
+================================================================================
+
+  Légende: A ──► B signifie "A doit être inséré AVANT B"
+           A ──► A signifie auto-référence (self-join)
+
+  3.1. PART 1 → PART 2 (Classification)
+  ────────────────────────────────────────
+
+    GOUVERNORAT ──► DELEGATION ──► LOCALITE
+        └──────────────────────────► LOCALITE
+
+    TYP_CATEGORIE ──► CATEGORIE ──► GRADE
+    CATEG ──────────► CATEGORIE
+    TYP_CATEGORIE ──► GRADE (direct aussi)
+
+    AXE ──► METIER ──► POSTE_TRAV
+    FILLIERE_POSTE ──► POSTE_TRAV
+
+    PARAM_MVT ──► TYPE_DEPART
+
+  3.2. PART 3 → PART 4 (Noyau)
+  ─────────────────────────────
+
+    SOCIETE ──► SERVICE ──► SERVICE (self-ref SER_COD_SERV)
+    TYPE_ORG ──► SERVICE (TYPE_SERV)
+
+    SOCIETE ──────────────────────────► PERSONNEL
+    SERVICE ──────────────────────────► PERSONNEL (COD_SOC, COD_SERV)
+    CATEGORIE ──► GRADE ──────────────► PERSONNEL
+    STATUT ────────────────────────────► PERSONNEL
+    ETAT_PAIE ─────────────────────────► PERSONNEL
+    ECHELON ───────────────────────────► PERSONNEL
+    MOTIF_SORT ────────────────────────► PERSONNEL
+    AFFECTATION ───────────────────────► PERSONNEL
+    PARAM_NIVEAU ──────────────────────► PERSONNEL
+    PAYS ──────────────────────────────► PERSONNEL
+    GROUPE_SANGUIN ────────────────────► PERSONNEL
+    PRM_MILITAIRE ─────────────────────► PERSONNEL
+    LISTE_DOMAINE ─────────────────────► PERSONNEL
+    TYPE_DEPART ───────────────────────► PERSONNEL
+    PRM_LIEU_GEOGRAPHIQUE ─────────────► PERSONNEL
+    NATURE_RECRUT ─────────────────────► PERSONNEL
+    POSTE_TRAV ────────────────────────► PERSONNEL
+
+  3.3. PART 5 (Enfants de PERSONNEL)
+  ──────────────────────────────────
+
+    PERSONNEL ──► FAMILLE ◄── ACTIVITE_FAMILLE
+    PERSONNEL ──► ADR_PERS
+    PERSONNEL ──► RENSEIGNEMENT_PERS
+    PERSONNEL ──► COMPTE_PERS
+    PERSONNEL ──► CONTRAT ──► DETAIL_CONTRAT
+    PERSONNEL ──► MOUVEMENT_PERS
+    PERSONNEL ──► AFFIL_PERS ◄── CODE_AFFILIATION
+    PERSONNEL ──► ATTEST_TRAV
+    SOCIETE ───► CONSEIL_ADMINISTRATION
+    GRADE ─────► TYP_ADM_TECH ◄── FILLIERE, POSTE_TRAV
+
+  3.4. PART 6 (Congé/Pointage)
+  ─────────────────────────────
+
+    REGIME_CONGE ──► CONDITION_CONGE ──► CRITERE_CONGE
+    CYCLE_CONGE ──► CRITERE_CYCLE_CONGE
+    TYP_CONGE ──► MOTIF_J ──► JUSTIF_MOTIF
+                         └──► PLAF_MOTIF_CNG
+    SOCIETE ──► REGIME
+          └──► SHIF ──► SHIFT_REG
+    CYCLE_POINTAGE ──► REGIME_REGIME
+
+    PERSONNEL + TYP_CONGE ──► SOLD_CNG
+    PERSONNEL + TYP_CONGE ──► PLANING_CNG ──► DETAIL_PLANING_CNG
+                                          └──► VERIF_PLANING_CNG
+    PERSONNEL ──► RECUP_SOLD_CNG
+    PERSONNEL + MOTIF_J ──► DEM_CNG ──► JUSTIF_DEM_CNG
+                                   └──► INTERIM_CNG
+    PERSONNEL ──► PERS_CARTE
+    PERSONNEL + TYP_AUTORISATION ──► AUTORISATION_SORT
+    PERSONNEL ──► POINTER
+    PERSONNEL ──► RETARD_JOURNEE
+    PERSONNEL + MOTIF_J ──► CAL_PERS
+
+  3.5. PART 7 (Recrutement)
+  ──────────────────────────
+
+    AVIS ──► LINE_AVIS ──► DOCUMENT_AVIS
+        └──► CONCOURS ──► LINE_CONCOURS ◄── EPREUVE
+        │           └──► SALLE_CONCOURS ◄── SALLE
+        └──► DIPLOME_AVIS ◄── PARAM_NIVEAU
+        └──► DIVERS_AVIS ◄── LISTE_DIVERS
+        └──► FORM_AVIS
+    LISTE_DOMAINE ──► CONCOURS
+
+    VILLE + TYPE_BONIFICATION + PAYS ──► FICHE_CANDIDAT
+    FICHE_CANDIDAT ──► COMPETENCE_CANDIDAT
+                  └──► FORM_CAND
+                  └──► FAMILLE_CANDIDAT ◄── ACTIVITE_FAMILLE
+                  └──► EXPERIENCE_CAND ◄── LISTE_DOMAINE
+                  └──► DOC_CAND
+                  └──► DET_FICHE_CANDIDAT
+                  └──► CAND_DIPLOM ◄── PARAM_NIVEAU
+                  └──► DIVERS_CAND ◄── LISTE_DIVERS
+
+    POSTE_TRAV ──► LIGNE_DIR ──► DIPLOME_DIR ◄── PARAM_NIVEAU
+                           └──► DIVERS_DIR ◄── LISTE_DIVERS
+
+    CONCOURS + FICHE_CANDIDAT + MODELE_EVALUATION ──► FICHE_EVAL_RECRU
+                                                       └──► DET_FICHE_EVAL_RECRU
+
+    PERSONNEL ──► STAGE ──► FICHE_EVAL_STAGE ──► DET_EVAL_STAGE
+                        MODELE_EVALUATION ──┘      VALEUR_CRITERE ──┘
+
+  3.6. PART 8 (UTILISATEUR)
+  ──────────────────────────
+
+    SOCIETE + PERSONNEL + FICHE_CANDIDAT ──► UTILISATEUR
+
+
+================================================================================
+SECTION 4: MODULE 1 — BASE DU PERSONNEL — WORKFLOW DÉTAILLÉ
+================================================================================
+
+  ┌────────────────────────────────────────────────────────────────────┐
+  │  WORKFLOW: Créer un agent dans le système (du début à la fin)    │
+  └────────────────────────────────────────────────────────────────────┘
+
+  ÉTAPE 1: Préparer les tables de référence (PART 1, 24 tables)
+  ──────────────────────────────────────────────────────────────
+    Insérer dans cet ordre (ou en parallèle car aucune FK entre elles):
+
+    a) Géographie:
+       GOUVERNORAT → 24 gouvernorats (COD_GOUV: '11'..'83')
+       DELEGATION  → 169 délégations (COD_DELEG: '1101'..'8302')
+       LOCALITE    → secteurs/imadas par délégation (après DELEGATION)
+       PRM_LIEU_GEOGRAPHIQUE → lieux d'affectation
+
+    b) Identification:
+       PAYS → au minimum ('TN','Tunisie')
+       PRM_MILITAIRE → situations militaires ('01'=effectué, '02'=exempté...)
+       GROUPE_SANGUIN → 8 groupes (A+, A-, B+, B-, AB+, AB-, O+, O-)
+
+    c) Classification socio-professionnelle:
+       TYP_CATEGORIE → classifications (MED=médical, PAR=paramédical,
+                        ADM=administratif, OUV=ouvrier, TEC=technique)
+       CATEG → natures de grilles (AG=A, BG=B, CG=C, DG=D)
+       ECHELON → échelons salariaux (1..15)
+       FILLIERE → filières (SANT=santé, ADM=admin, TEC=technique)
+
+    d) Statuts et positions:
+       ETAT_PAIE → états ('0'=actif, '1'=bloqué, '5'=arrêt, '8'=STC)
+       STATUT → statuts d'imposition ('01','02'...)
+       AFFECTATION → statuts admin (TIT=titulaire, CTR=contractuel,
+                      STG=stagiaire)
+       NATURE_RECRUT → modes recrutement (EXT=externe, DIR=direct...)
+
+    e) Mouvements et départs:
+       PARAM_MVT → mouvements carrière (codes par TYP_MVT 1-9)
+       MOTIF_SORT → positions admin (ACT=activité, DET=détachement...)
+       TYPE_DEPART → types départ (RET=retraite, DEM=démission...)
+
+    f) Compétences et métiers:
+       LISTE_DOMAINE → spécialités santé (MG=médecine générale, CHI=chirurgie...)
+       FONCTIONS → fonctions (DIR=directeur, CHF=chef service...)
+       PARAM_NIVEAU → diplômes (BAC, LIC, MAST, DOC, DIPL_INF...)
+       AXE → axes d'activité
+       ACTIVITE_FAMILLE → activités enfants/conjoints
+
+    g) Organismes:
+       AFFELIATION → organismes (CNRPS, CNAM...)
+       CODE_AFFILIATION → codes d'affiliation
+
+  ÉTAPE 2: Classification hiérarchique (PART 2, 7 tables)
+  ────────────────────────────────────────────────────────
+    Ordre strict:
+      CATEG → CATEGORIE → GRADE
+      AXE → METIER → FILLIERE_POSTE → POSTE_TRAV
+
+    Chaîne de classification:
+    ┌─────────────────────────────────────────────────────────┐
+    │  CATEG (niveau 1: nature de grille)                    │
+    │    PK: COD_CATEG VARCHAR2(4)                           │
+    │    Ex: 'AG' (Catégorie A), 'BG' (Catégorie B)         │
+    │  ↓                                                      │
+    │  CATEGORIE (niveau 2: sous-catégorie)                  │
+    │    PK: COD_CATEG + COD_CAT VARCHAR2(4)                 │
+    │    FK: COD_CATEG → CATEG, TYP_CAT → TYP_CATEGORIE     │
+    │    Ex: ('AG','A1'), ('AG','A2'), ('BG','B1')           │
+    │  ↓                                                      │
+    │  GRADE (niveau 3: grade/échelon salarial)              │
+    │    PK: COD_CATEG + COD_CAT + COD_GRAD VARCHAR2(4)      │
+    │    FK: (COD_CATEG, COD_CAT) → CATEGORIE                │
+    │    Ex: ('AG','A1','G01'), ('AG','A1','G02')            │
+    └─────────────────────────────────────────────────────────┘
+
+    Chaîne des emplois:
+    ┌─────────────────────────────────────────────────────────┐
+    │  AXE → METIER                                          │
+    │    METIER.COD_AXE FK → AXE.COD_AXE                    │
+    │  FILLIERE_POSTE → POSTE_TRAV                           │
+    │    POSTE_TRAV.COD_FIL FK → FILLIERE_POSTE.COD_FIL     │
+    │    POSTE_TRAV.COD_METIER FK → METIER.COD_METIER       │
+    │    PK: COD_POST VARCHAR2(15)                           │
+    └─────────────────────────────────────────────────────────┘
+
+  ÉTAPE 3: Créer l'organisme (PART 3, 1 table)
+  ──────────────────────────────────────────────
+    INSERT INTO SOCIETE (COD_SOC, COD_POST, LIB_SOC, ...)
+    VALUES ('01', '1002', 'Ministère de la Santé Publique', ...);
+
+    RÈGLE: COD_SOC = '01' pour TOUTES les données.
+
+  ÉTAPE 4: Créer l'organigramme (PART 4, SERVICE)
+  ─────────────────────────────────────────────────
+    Insérer SERVICE en respectant la hiérarchie:
+    - La RACINE (MIN) en premier avec SER_COD_SERV = NULL
+    - Puis les enfants qui référencent la racine
+    - Puis les petits-enfants, etc.
+
+    Voir SECTION 9 pour l'arbre complet et les règles.
+
+    ATTENTION: SERVICE.TYPE_SERV est VARCHAR2(4) → tous les codes
+    TYPE_ORG (MIN, CAB, DRS, CHU, SMED...) font 2-4 caractères.
+
+  ÉTAPE 5: Créer l'agent (PART 4, PERSONNEL)
+  ────────────────────────────────────────────
+    PERSONNEL est la table la plus connectée (18 FK).
+    Toutes ces FK doivent exister AVANT l'INSERT:
+
+    ┌───────────────────────────────────────────────────────────────────┐
+    │  COLONNES FK OBLIGATOIRES pour créer un agent:                  │
+    │                                                                  │
+    │  COD_SOC       → '01' (SOCIETE)                                 │
+    │  COD_SERV      → SERVICE existant (ex: 'CN_CARD')              │
+    │  COD_CATEG     → CATEG existant                                 │
+    │  COD_CAT       → CATEGORIE existant (COD_CATEG+COD_CAT)        │
+    │  COD_GRAD      → GRADE existant (COD_CATEG+COD_CAT+COD_GRAD)   │
+    │  COD_STAT      → STATUT existant (défaut '01')                  │
+    │  ETAT_ACT      → ETAT_PAIE existant ('0','1','5','8')          │
+    │  COD_ECH       → ECHELON existant (1-15)                       │
+    │  COD_MOTIF     → MOTIF_SORT existant                            │
+    │  COD_AFFECT    → AFFECTATION existant                           │
+    │  COD_NIVEAU    → PARAM_NIVEAU existant (peut être NULL)         │
+    │  COD_NATP      → PAYS existant (nationalité)                    │
+    │  GRP_SANG      → GROUPE_SANGUIN existant (peut être NULL)       │
+    │  SERV_MIL      → PRM_MILITAIRE existant (peut être NULL)        │
+    │  CODE_DOMAINE  → LISTE_DOMAINE existant (peut être NULL)        │
+    │  COD_TYP_DEPART→ TYPE_DEPART existant (NULL si actif)            │
+    │  COD_LIEU_GEOG → PRM_LIEU_GEOGRAPHIQUE existant (peut être NULL)│
+    │  COD_NAT_RECR  → NATURE_RECRUT existant (peut être NULL)        │
+    │  POSTE_TRAV    → POSTE_TRAV existant (peut être NULL)           │
+    │                                                                  │
+    │  COLONNES CHECK:                                                │
+    │  SEXE          → 'M' ou 'F'                                     │
+    │  COD_SIT       → 'C','D','V','M','R'                            │
+    │  CHEF_FAM      → 'O','N'                                        │
+    │  ETAT_SANTE    → 'S','H'                                        │
+    │  ETAT_POSTE_TRAV → 'O','N','A'                                  │
+    │                                                                  │
+    │  PK: COD_SOC + MAT_PERS                                         │
+    │  MAT_PERS: VARCHAR2(10), matricule unique de l'agent            │
+    └───────────────────────────────────────────────────────────────────┘
+
+  ÉTAPE 6: Compléter le dossier agent (PART 5, 10 tables)
+  ────────────────────────────────────────────────────────
+    Après avoir créé l'agent dans PERSONNEL:
+
+    a) FAMILLE        → Conjoint (NUM_FAM=99), enfants (NUM_FAM=1..80)
+    b) ADR_PERS       → Adresse(s), email, téléphone
+    c) RENSEIGNEMENT_PERS → Informations complémentaires (régime, pointage...)
+    d) COMPTE_PERS    → RIB bancaire (COD_BANQ + COD_AGC + RIB)
+    e) CONTRAT        → Contrat de travail (NUM_CONTRAT séquentiel)
+    f) MOUVEMENT_PERS → Premier mouvement (recrutement)
+    g) AFFIL_PERS     → Affiliations (CNRPS, CNAM, mutuelle...)
+    h) ATTEST_TRAV    → Attestations de travail (optionnel)
+    i) TYP_ADM_TECH   → Emplois fonctionnels (optionnel, avant PERSONNEL)
+    j) CONSEIL_ADMINISTRATION → Conseil d'admin (optionnel)
+
+
+================================================================================
+SECTION 5: MODULE 2 — CONGÉ ET POINTAGE — WORKFLOW DÉTAILLÉ
+================================================================================
+
+  ┌────────────────────────────────────────────────────────────────────┐
+  │  PRÉREQUIS: Module 1 complété (PERSONNEL existant)               │
+  └────────────────────────────────────────────────────────────────────┘
+
+  WORKFLOW A: Configurer le système de congé
+  ────────────────────────────────────────────
+
+  ÉTAPE A1: Tables paramètres congé
+    TYP_CONGE → Types de congé:
+      ┌──────────────────────────────────────────────────────────────┐
+      │  Exemples:                                                  │
+      │  ('CA', 'Congé Annuel')         NAT_TYP_CNG='C', SOLD='O' │
+      │  ('CM', 'Congé Maladie')        NAT_TYP_CNG='C', SOLD='N' │
+      │  ('MT', 'Congé Maternité')      NAT_TYP_CNG='C', SOLD='N' │
+      │  ('CE', 'Congé Exceptionnel')   NAT_TYP_CNG='C', SOLD='N' │
+      │  ('PR', 'Code Présence')        NAT_TYP_CNG='P', SOLD='N' │
+      │  ('SA', 'Sanction')             NAT_TYP_CNG='S', SOLD='O' │
+      └──────────────────────────────────────────────────────────────┘
+
+  ÉTAPE A2: Régimes et cycles de congé
+    REGIME_CONGE → Droits annuels par ancienneté
+    CYCLE_CONGE → Période de référence ('01/01' à '12/31')
+    CONDITION_CONGE → Conditions d'éligibilité par ancienneté
+    CRITERE_CONGE → Critères dynamiques (table.colonne à évaluer)
+    CRITERE_CYCLE_CONGE → Critères de détermination du cycle
+
+  ÉTAPE A3: Motifs d'absence
+    MOTIF_J → Table CENTRALE du module congé:
+      ┌──────────────────────────────────────────────────────────────┐
+      │  Champs clés:                                              │
+      │  COD_M:          Code pointage (VARCHAR2(4))               │
+      │  TYP_CNG:        FK → TYP_CONGE                           │
+      │  DED_SAL:        Incidence salaire (O/N)                   │
+      │  DED_CNG:        Déduit du solde congé (O/N)              │
+      │  PLAFOND_CNG:    Nb jours maximum                         │
+      │  UNITE:          C=carrière, A=annuel, S=semestriel        │
+      │  JOUR:           O=jours ouvrables, C=calendaires          │
+      │  SEXE:           F=féminin (maternité)                     │
+      │                                                            │
+      │  Exemples:                                                  │
+      │  ('PR', 'CA', 'Présent')         DED_SAL='N', DED_CNG='N' │
+      │  ('CA', 'CA', 'Congé Annuel')    DED_SAL='N', DED_CNG='O' │
+      │  ('CM', 'CM', 'Congé Maladie')   DED_SAL='O', DED_CNG='N' │
+      │  ('MT', 'MT', 'Maternité')       DED_SAL='N', SEXE='F'   │
+      └──────────────────────────────────────────────────────────────┘
+
+    JUSTIF_MOTIF → Justificatifs par motif (certificat médical, etc.)
+    PLAF_MOTIF_CNG → Plafonds par statut et ancienneté
+
+  WORKFLOW B: Configurer le pointage
+  ──────────────────────────────────
+
+  ÉTAPE B1: Infrastructure pointage
+    JOUR_SEMAINE → 7 jours (NUM_JOUR: 1=Lundi...7=Dimanche)
+    JOURS_FERIERS → Fêtes nationales + islamiques
+    DATE_FERIERS → Dates effectives par année
+    TYP_AUTORISATION → Types d'autorisations de sortie
+    CYCLE_POINTAGE → Périodes spéciales (allaitement...)
+    CARTE_POINT → Badges de pointage
+
+  ÉTAPE B2: Régimes de travail
+    REGIME → Régimes de pointage (admin 37h, soignant 40h, garde 24h)
+      FK: COD_SOC='01' → SOCIETE
+    SHIF → Shifts (Matin 7h-14h, Soir 14h-21h, Nuit 21h-7h, Admin 8h-17h)
+      FK: COD_SOC='01' → SOCIETE
+    SHIFT_REG → Quel shift pour quel jour dans quel régime
+      FK: (COD_SHIFT, COD_SOC) → SHIF
+    REGIME_REGIME → Lien régime ↔ cycle temporaire
+      FK: (DAT_DEBUT, DAT_FIN) → CYCLE_POINTAGE
+
+  ÉTAPE B3: Calendrier
+    CALANDRIER → Générer 365/366 lignes par an pour COD_SOC='01'
+      PK: (COD_SOC, AN, MO, JS)
+      FERIER: 'P'=ouvrable, 'R1'=repos, 'R3'=férié
+
+  WORKFLOW C: Opérations quotidiennes congé
+  ──────────────────────────────────────────
+
+  ÉTAPE C1: Initialiser les soldes (début d'année ou embauche)
+    SOLD_CNG → Un enregistrement par agent × type de congé × année
+      PK: (COD_SOC, MAT_PERS, ANNEE_CNG, TYP_CNG)
+      INIT_CNG = reliquat année précédente
+      CUM_CNG  = droit de l'année
+      SOLD_CNG = INIT_CNG + CUM_CNG - PRIS_CNG
+
+  ÉTAPE C2: Planning prévisionnel
+    PLANING_CNG → Planning par agent et année
+      FK: PERSONNEL, TYP_CONGE
+    DETAIL_PLANING_CNG → Périodes prévues (date_début, date_fin)
+      FK: PLANING_CNG
+    VERIF_PLANING_CNG → Erreurs détectées (chevauchement, etc.)
+      FK: PLANING_CNG
+
+  ÉTAPE C3: Demande de congé (cycle principal)
+    ┌───────────────────────────────────────────────────────────────┐
+    │  DEM_CNG: Le cœur opérationnel                              │
+    │                                                              │
+    │  1. Agent fait sa demande:                                   │
+    │     INSERT DEM_CNG: VALID='I' (instance)                    │
+    │     CODE_M → MOTIF_J.COD_M                                  │
+    │     DAT_DEBUT, DAT_FIN, NBR_JOURS                           │
+    │                                                              │
+    │  2. Pièces justificatives (si requises):                     │
+    │     INSERT JUSTIF_DEM_CNG: certificat médical, etc.          │
+    │                                                              │
+    │  3. Désignation intérimaire (si requis):                     │
+    │     INSERT INTERIM_CNG: MAT_PERS_INT                        │
+    │                                                              │
+    │  4. Validation hiérarchique:                                 │
+    │     UPDATE DEM_CNG SET VALID='O' (validé) ou 'N'(refusé)   │
+    │                                                              │
+    │  5. Mise à jour solde:                                       │
+    │     UPDATE SOLD_CNG SET PRIS_CNG = PRIS_CNG + NBR_JOURS    │
+    └───────────────────────────────────────────────────────────────┘
+
+  WORKFLOW D: Opérations quotidiennes pointage
+  ─────────────────────────────────────────────
+
+  ÉTAPE D1: Affecter les badges
+    PERS_CARTE → Association agent ↔ carte de pointage
+      FK: PERSONNEL
+
+  ÉTAPE D2: Pointage brut (importation pointeuse)
+    POINTER_IND → Données brutes badge (heure, minute, date)
+      ETAT_IND: 'I'=en instance, 'V'=validé, 'R'=rejeté
+
+  ÉTAPE D3: Pointage consolidé
+    POINTER → Pointages traités par jour
+      TYP_POINT: 'E'=entrée, 'S'=sortie
+      FK: PERSONNEL
+
+  ÉTAPE D4: Retards
+    RETARD_JOURNEE → Enregistrement des retards
+      TYPE: 'E'=entrée, 'S'=sortie
+      DUREE_H, DUREE_M = écart par rapport au régime
+
+  ÉTAPE D5: Calendrier personnel
+    CAL_PERS → Un enregistrement par agent × jour
+      COD_M → code de présence/absence du jour
+      BASE_H, BASE_M = heures dues selon régime
+      PRES_H, PRES_M = heures effectives
+
+  ÉTAPE D6: Autorisations de sortie
+    AUTORISATION_SORT → Sorties autorisées
+      ETAT_AUT: 'I'=instance, 'V'=validée, 'R'=refusée
+      FK: PERSONNEL, TYP_AUTORISATION
+
+
+================================================================================
+SECTION 6: MODULE 3 — RECRUTEMENT ET CONCOURS — WORKFLOW DÉTAILLÉ
+================================================================================
+
+  ┌────────────────────────────────────────────────────────────────────┐
+  │  PRÉREQUIS: Module 1 PART 1-4 complété                          │
+  │  (tables de référence + SOCIETE + SERVICE + certains PERSONNEL)  │
+  └────────────────────────────────────────────────────────────────────┘
+
+  WORKFLOW A: Publier un avis de recrutement
+  ────────────────────────────────────────────
+
+  ÉTAPE A1: Tables de référence recrutement (PART 7A)
+    VILLE → Villes tunisiennes (résidence des candidats)
+    TYPE_BONIFICATION → Bonifications concours (handicap, ancien combattant...)
+    MODELE_EVALUATION → Modèles de notation (entretien, évaluation stage...)
+    EPREUVE → Référentiel épreuves (culture générale, spécialité...)
+    SALLE → Salles d'examen (par établissement)
+      PK: (COD_ETAB_CONC, COD_SALLE)
+    LISTE_DIVERS → Documents divers (permis, certificats...)
+    VALEUR_CRITERE → Barème de notation
+
+  ÉTAPE A2: Créer l'avis de recrutement
+    ┌───────────────────────────────────────────────────────────────┐
+    │  AVIS → Publication initiale                                 │
+    │    NUM_AVIS: VARCHAR2(6) — ex: '202601'                     │
+    │    ETAT_AVIS: 'I'=instance, puis 'V'=validé                │
+    │                                                              │
+    │  LINE_AVIS → Lignes (postes ouverts par spécialité)         │
+    │    ORDR_AVIS: séquentiel                                     │
+    │    CODE_DOMAINE → LISTE_DOMAINE (spécialité)                │
+    │    NOMBRE = nombre de postes à pourvoir                      │
+    │                                                              │
+    │  DOCUMENT_AVIS → Documents requis par ligne                  │
+    │    FK: LINE_AVIS (NUM_AVIS, CODE_DOMAINE, ORDR_AVIS)       │
+    │                                                              │
+    │  DIPLOME_AVIS → Diplômes requis par ligne                   │
+    │    FK: AVIS, PARAM_NIVEAU                                   │
+    │                                                              │
+    │  DIVERS_AVIS → Éléments divers requis                       │
+    │    FK: AVIS, LISTE_DIVERS                                   │
+    │                                                              │
+    │  FORM_AVIS → Formations requises                             │
+    │    FK: AVIS                                                  │
+    │                                                              │
+    │  DET_LINE_AVIS → Ventilation par métier/poste               │
+    │    Pas de FK déclarée mais logique → LINE_AVIS              │
+    └───────────────────────────────────────────────────────────────┘
+
+  WORKFLOW B: Expression des besoins (lignes directrices)
+  ────────────────────────────────────────────────────────
+
+    LIGNE_DIR → Besoins par structure sanitaire
+      PK: (COD_SOC, COD_AFF, COD_SERV, DAT_DIR, COD_METIER, COD_POST)
+      FK: COD_POST → POSTE_TRAV
+      NIV_URGENCE: niveau d'urgence du besoin
+
+    DIPLOME_DIR → Diplômes requis par besoin
+      FK: LIGNE_DIR, PARAM_NIVEAU
+
+    DIVERS_DIR → Éléments divers requis par besoin
+      FK: LIGNE_DIR, LISTE_DIVERS
+
+  WORKFLOW C: Organiser le concours
+  ──────────────────────────────────
+
+  ÉTAPE C1: Créer le concours
+    CONCOURS → Concours lié à un avis
+      PK: CODE_CONCOURS VARCHAR2(10) — ex: 'CONC202601'
+      FK: NUM_AVIS → AVIS, CODE_DOMAINE → LISTE_DOMAINE
+      TYPE_CONCOURS: 'E'=écrit, 'O'=oral, 'T'=technique, 'P'=psycho
+      ETAT_CONC: 'I'=saisie, 'V'=validé, 'C'=clôturé
+
+  ÉTAPE C2: Configurer les épreuves
+    LINE_CONCOURS → Épreuves du concours
+      PK: (CODE_EPREUVE, CODE_CONCOURS)
+      FK: EPREUVE, CONCOURS
+      COEF = coefficient de l'épreuve
+      NOT_ELIM = note éliminatoire
+
+  ÉTAPE C3: Affecter les salles
+    SALLE_CONCOURS → Salles d'examen pour le concours
+      FK: SALLE, CONCOURS
+      CAPACITE_CONC: capacité pour ce concours
+
+  WORKFLOW D: Gérer les candidatures
+  ──────────────────────────────────
+
+  ÉTAPE D1: Créer la fiche candidat
+    ┌───────────────────────────────────────────────────────────────┐
+    │  FICHE_CANDIDAT → Données complètes du candidat             │
+    │    PK: NUM_FICHE VARCHAR2(15) — ex: 'CAND000001'           │
+    │    FK: CODE_VILLE → VILLE                                    │
+    │        COD_MOTIF_BONIF → TYPE_BONIFICATION (si applicable)   │
+    │        COD_NAT_P → PAYS                                     │
+    │                                                              │
+    │    TYP_CAND: 'E'=externe, 'R'=réintégration, 'D'=direct    │
+    │    ETAT_FICHE: Cycle de vie du candidat:                    │
+    │      1=saisie → 2=validé → 3=sélectionné → 5=convoqué     │
+    │      → 6=admis → 8=retenu → 9=recruté                     │
+    │      ou: 4=rejeté, 7=refusé                                │
+    │                                                              │
+    │    SEXE: 'M' ou 'F'                                         │
+    │    HANDICAP: '0'=non, '1'=normal, '2'=prioritaire           │
+    └───────────────────────────────────────────────────────────────┘
+
+  ÉTAPE D2: Compléter le dossier candidat
+    COMPETENCE_CANDIDAT → Compétences déclarées
+    FORM_CAND → Formations suivies
+    FAMILLE_CANDIDAT → Famille (conjoint NUM_FAM=99, enfants 1..80)
+      FK: FICHE_CANDIDAT, ACTIVITE_FAMILLE (PARENTE: E/C/M/P/D/V)
+    EXPERIENCE_CAND → Expériences professionnelles
+      FK: FICHE_CANDIDAT, LISTE_DOMAINE
+    DOC_CAND → Documents fournis
+    CAND_DIPLOM → Diplômes obtenus
+      FK: FICHE_CANDIDAT, PARAM_NIVEAU
+    DIVERS_CAND → Éléments divers (permis, certificats)
+      FK: FICHE_CANDIDAT, LISTE_DIVERS
+
+  ÉTAPE D3: Inscrire le candidat à un/plusieurs concours
+    DET_FICHE_CANDIDAT → Résultats par concours
+      PK: (NUM_FICHE, CODE_CONCOURS)
+      ETAT_FICHE, MOYEN_FINAL, RESULT_FINAL, CLASSEMENT
+
+  WORKFLOW E: Évaluer et recruter
+  ────────────────────────────────
+
+  ÉTAPE E1: Évaluation par jury
+    FICHE_EVAL_RECRU → Évaluation du candidat
+      PK: (CODE_CONCOURS, NUM_MODELE, NUM_FICHE, COD_SOC, MAT_MEMBRE)
+      FK: CONCOURS, FICHE_CANDIDAT, MODELE_EVALUATION
+      AVIS: verdict du jury
+
+    DET_FICHE_EVAL_RECRU → Détail par critère
+      FK: FICHE_EVAL_RECRU
+      COD_CRIT: critère évalué
+      COD_VAL/VALEUR: note attribuée
+
+  ÉTAPE E2: Pré-recrutement
+    PERSONNEL_RECRUT → Données pré-recrutement
+      Structure miroir de PERSONNEL
+      ETAT: 'I'=instance, 'V'=validé (agent créé dans PERSONNEL)
+      Après validation → INSERT dans PERSONNEL (Module 1)
+
+  ÉTAPE E3: Stage probatoire (après recrutement)
+    STAGE → Stage de l'agent recruté
+      FK: PERSONNEL (COD_SOC, MAT_PERS)
+      PERIODE: durée en mois (12 mois titulaire, 6 mois contractuel)
+      ETAT: 'E'=instance, 'V'=titularisé, 'P'=prolongé, 'F'=fin
+
+    FICHE_EVAL_STAGE → Évaluation du stage
+      FK: STAGE, MODELE_EVALUATION
+      ETAT: 'I'=instance, 'V'=validé
+
+    DET_EVAL_STAGE → Notes par critère
+      FK: FICHE_EVAL_STAGE, VALEUR_CRITERE
+
+
+================================================================================
+SECTION 7: TABLE UTILISATEUR — WORKFLOW DÉTAILLÉ
+================================================================================
+
+  ┌────────────────────────────────────────────────────────────────────┐
+  │  PRÉREQUIS: Module 1 + Module 3 complétés                       │
+  │  (PERSONNEL et FICHE_CANDIDAT doivent exister)                   │
+  └────────────────────────────────────────────────────────────────────┘
+
+  TABLE: UTILISATEUR
+    PK: COD_USER VARCHAR2(10)
+    UNIQUE: LOGIN VARCHAR2(50)
+    FK: COD_SOC → SOCIETE
+        (COD_SOC, MAT_PERS) → PERSONNEL
+        NUM_FICHE → FICHE_CANDIDAT
+
+  RÔLES ET LIENS:
+  ┌──────────────────────────────────────────────────────────────────────┐
+  │  ROLE_USER   │  MAT_PERS  │  NUM_FICHE  │  Description            │
+  ├──────────────┼────────────┼─────────────┼─────────────────────────┤
+  │  ADMIN       │  requis    │  NULL       │  Administrateur système │
+  │  DIRECTEUR   │  requis    │  NULL       │  Directeur structure    │
+  │  RH          │  requis    │  NULL       │  Agent RH               │
+  │  AGENT       │  requis    │  NULL       │  Agent standard         │
+  │  CANDIDAT    │  NULL      │  requis     │  Candidat externe       │
+  └──────────────┴────────────┴─────────────┴─────────────────────────┘
+
+  ETAT_USER: 'A'=actif, 'I'=inactif, 'B'=bloqué
+  MOT_PASSE: stocké hashé (bcrypt/SHA-256)
+
+
+================================================================================
+SECTION 8: RÉFÉRENCE RAPIDE — TYPES, TAILLES, VALEURS ADMISES
+================================================================================
+
+  8.1. COLONNES CLÉ (PK) — TAILLES MAXIMALES
+  ─────────────────────────────────────────────
+  ┌──────────────────────┬──────────────┬──────────────────────────────┐
+  │  Colonne             │  Type        │  Tables utilisant           │
+  ├──────────────────────┼──────────────┼──────────────────────────────┤
+  │  COD_SOC             │  VARCHAR2(4) │  SOCIETE, SERVICE,          │
+  │                      │              │  PERSONNEL, + quasi toutes  │
+  │  MAT_PERS            │  VARCHAR2(10)│  PERSONNEL + enfants        │
+  │  COD_SERV            │  VARCHAR2(10)│  SERVICE                    │
+  │  COD_GOUV            │  VARCHAR2(4) │  GOUVERNORAT, DELEGATION    │
+  │  COD_DELEG           │  VARCHAR2(4) │  DELEGATION                 │
+  │  TYP_ORG / TYPE_SERV │  VARCHAR2(4) │  TYPE_ORG, SERVICE          │
+  │  COD_CATEG           │  VARCHAR2(4) │  CATEG, CATEGORIE, GRADE    │
+  │  COD_CAT             │  VARCHAR2(4) │  CATEGORIE, GRADE           │
+  │  COD_GRAD            │  VARCHAR2(4) │  GRADE                      │
+  │  COD_POST            │  VARCHAR2(15)│  POSTE_TRAV                 │
+  │  COD_FONCT           │  VARCHAR2(4) │  FONCTIONS (+TYP_FONCT)     │
+  │  COD_M               │  VARCHAR2(4) │  MOTIF_J                    │
+  │  TYP_CNG             │  VARCHAR2(4) │  TYP_CONGE                  │
+  │  NUM_FICHE           │  VARCHAR2(15)│  FICHE_CANDIDAT             │
+  │  CODE_CONCOURS       │  VARCHAR2(10)│  CONCOURS                   │
+  │  NUM_AVIS            │  VARCHAR2(6) │  AVIS                       │
+  │  COD_USER            │  VARCHAR2(10)│  UTILISATEUR                │
+  │  CODE_EPREUVE        │  VARCHAR2(10)│  EPREUVE                    │
+  │  COD_NIVEAU          │  VARCHAR2(5) │  PARAM_NIVEAU               │
+  │  COD_MVT             │  VARCHAR2(4) │  PARAM_MVT                  │
+  │  COD_MOTIF           │  VARCHAR2(4) │  MOTIF_SORT                 │
+  │  COD_AFFECT          │  VARCHAR2(4) │  AFFECTATION                │
+  │  COD_STAT            │  VARCHAR2(4) │  STATUT                     │
+  │  COD_ECH             │  NUMBER(2,0) │  ECHELON                    │
+  │  COD_PAYS            │  VARCHAR2(4) │  PAYS                       │
+  └──────────────────────┴──────────────┴──────────────────────────────┘
+
+  8.2. COLONNES CHECK — VALEURS ADMISES
+  ──────────────────────────────────────
+  ┌──────────────────────────┬──────────────────────────────────────────┐
+  │  Table.Colonne           │  Valeurs admises                       │
+  ├──────────────────────────┼──────────────────────────────────────────┤
+  │  PERSONNEL.SEXE          │  'M', 'F'                              │
+  │  PERSONNEL.COD_SIT       │  'C','D','V','M','R'                   │
+  │  PERSONNEL.CHEF_FAM      │  'O','N'                               │
+  │  PERSONNEL.ETAT_SANTE    │  'S','H'                               │
+  │  PERSONNEL.ETAT_POSTE_TRAV│ 'O','N','A'                           │
+  │  PERSONNEL.GRP_SANG      │  'A+','A-','AB-','AB+','B+','B-',     │
+  │                          │  'O+','O-'                             │
+  │  PERSONNEL.HANDICAP      │  '0','1','2','3'                       │
+  │                          │                                        │
+  │  TYPE_DEPART.NATURE_DEPART│ 'D','R','F','I','S','M','A','E',     │
+  │                          │  'P','C','L','N'                       │
+  │                          │                                        │
+  │  FONCTIONS.TYP_FONCT     │  'F','Q'                              │
+  │  AFFECTATION.REGIME      │  'M','H'                              │
+  │  ACTIVITE_FAMILLE.PARENTE│  'E','C'                              │
+  │                          │                                        │
+  │  MOTIF_J.UNITE           │  'C','A','S','N'                      │
+  │  MOTIF_J.DED_ANCIENNETE  │  'O','N'                              │
+  │                          │                                        │
+  │  FAMILLE.PARENTE         │  'E','C','M','P','D','V'              │
+  │  FAMILLE.PARENTE_ACT     │  'E','C'                              │
+  │  FAMILLE.SEXE            │  'M','F'                              │
+  │  FAMILLE.BENEF           │  'O','N'                              │
+  │                          │                                        │
+  │  UTILISATEUR.ROLE_USER   │  'ADMIN','DIRECTEUR','RH','AGENT',   │
+  │                          │  'CANDIDAT'                            │
+  │  UTILISATEUR.ETAT_USER   │  'A','I','B'                          │
+  │                          │                                        │
+  │  FAMILLE_CANDIDAT.SEXE   │  'M','F'                              │
+  │  FAMILLE_CANDIDAT.PARENTE│  'E','C','M','P','D','V'              │
+  │                          │                                        │
+  │  SERVICE.REG_POST        │  '0','1','2'                          │
+  └──────────────────────────┴──────────────────────────────────────────┘
+
+  8.3. CONVENTIONS DE NOMMAGE DES CODES
+  ──────────────────────────────────────
+  ┌───────────────────────────────────────────────────────────────────┐
+  │  Entité        │  Convention                                    │
+  ├────────────────┼────────────────────────────────────────────────┤
+  │  COD_SOC       │  Toujours '01'                                │
+  │  COD_GOUV      │  ISO 3166-2:TN ('11'=Tunis, '51'=Sousse...) │
+  │  COD_DELEG     │  COD_GOUV + seq 2 chiffres ('1101','1102'...) │
+  │  MAT_PERS      │  Numérique séquentiel ('0000001'..'9999999')  │
+  │  COD_SERV      │  Mnémonique ≤10 chars (MIN,DRH,CHUCN,CN_CARD)│
+  │  TYPE_SERV     │  Code TYPE_ORG ≤4 chars (MIN,DRS,CHU,SMED...) │
+  │  NUM_FICHE     │  'CAND' + séquentiel ('CAND000001')          │
+  │  CODE_CONCOURS │  'CONC' + année + seq ('CONC202601')         │
+  │  NUM_AVIS      │  Année + seq ('202601')                       │
+  │  COD_USER      │  'USR' + séquentiel ('USR001')               │
+  │  LOGIN         │  Format libre, UNIQUE (email ou identifiant) │
+  └───────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+SECTION 9: HIÉRARCHIE ORGANISATIONNELLE — RAPPEL SYNTHÉTIQUE
+================================================================================
+
+  Voir 03_documentation_adaptations.txt Section 16 pour les détails complets.
+
+  RAPPEL RAPIDE:
+  ┌─────────────────────────────────────────────────────────────────┐
+  │  3 tables: SOCIETE → SERVICE → TYPE_ORG                      │
+  │  Mécanisme: adjacency list (SER_COD_SERV = parent)           │
+  │  23 codes TYPE_ORG (RANG 1-23)                                │
+  │  124 nœuds SERVICE (dont 5 établissements + services internes)│
+  │  COD_SERV: VARCHAR2(10), TYPE_SERV: VARCHAR2(4)              │
+  │                                                                │
+  │  Insertion SERVICE: parent AVANT enfant, sinon FK violation    │
+  │  PERSONNEL.COD_SERV pointe vers un nœud feuille               │
+  │                                                                │
+  │  Services par type d'établissement:                            │
+  │    CHU: ~30-44 services (SMED+SCHR+STEC+LABO+SADM+SGEN)     │
+  │    HR:  ~11-19 services                                       │
+  │    HC:  ~5-10 services  (CONS+SMED+STEC+LABO+SADM+SGEN)     │
+  │    CSB: ~3-5 services   (CONS+SADM)                          │
+  └─────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+SECTION 10: EXEMPLES INSERT PAR WORKFLOW
+================================================================================
+
+  10.1. EXEMPLE COMPLET: Créer un agent médecin au CHU Charles-Nicolle
+  ──────────────────────────────────────────────────────────────────────
+
+  -- Prérequis: toutes les tables de référence remplies
+
+  -- 1. SOCIETE (déjà fait si données ref chargées)
+  INSERT INTO SOCIETE (COD_SOC, COD_POST, LIB_SOC, LIB_SOC_A)
+  VALUES ('01', '1002', 'Ministère de la Santé Publique',
+          'وزارة الصحة العمومية');
+
+  -- 2. SERVICE hiérarchie (déjà fait si données ref chargées)
+  -- MIN → DRS11 → CHUCN → CN_CARD
+
+  -- 3. Agent
+  INSERT INTO PERSONNEL (
+      COD_SOC, MAT_PERS, NOM_PERS, PREN_PERS,
+      NOM_PERS_A, PREN_PERS_A,
+      CIN, SEXE, COD_SIT, DAT_NAIS, DAT_ENT, DAT_EMB,
+      COD_SERV, COD_CATEG, COD_CAT, COD_GRAD, COD_ECH,
+      COD_MOTIF, COD_NATP, COD_STAT, ETAT_ACT,
+      COD_AFFECT, CHEF_FAM, NBRE_ENF
+  ) VALUES (
+      '01', '0000001', 'BEN AHMED', 'Mohamed',
+      'بن أحمد', 'محمد',
+      '07654321', 'M', 'M', DATE '1985-03-15', DATE '2015-09-01', DATE '2015-09-01',
+      'CN_CARD',     -- Service: Cardiologie au CHU Charles-Nicolle
+      'AG', 'A1', 'G01', 5,
+      'ACT',         -- Position: en activité
+      'TN',          -- Nationalité tunisienne
+      '01',          -- Statut fiscal standard
+      '0',           -- État actif
+      'TIT',         -- Titulaire
+      'O', 2         -- Chef de famille, 2 enfants
+  );
+
+  -- 4. Adresse
+  INSERT INTO ADR_PERS (COD_SOC, MAT_PERS, NUM_ADR, COD_GOUV,
+      RUE, ADR_COURANT, TEL_PORT_PERS, ADR_ELECTRONIQUE)
+  VALUES ('01', '0000001', 1, '11',
+      'Rue de la Liberté, Tunis', 'O', '55123456', 'ben.ahmed@sante.tn');
+
+  -- 5. Renseignements complémentaires
+  INSERT INTO RENSEIGNEMENT_PERS (COD_SOC, MAT_PERS, POINTE, ANC_PERS)
+  VALUES ('01', '0000001', 'O', 120);
+
+  -- 6. Famille (conjoint)
+  INSERT INTO FAMILLE (COD_SOC, MAT_PERS, NUM_FAM, PRENOM, PARENTE,
+      SEXE, DAT_NAISS, BENEF, PARENTE_ACT, COD_ACTIVITE)
+  VALUES ('01', '0000001', 99, 'Fatma', 'C',
+      'F', DATE '1987-06-20', 'O', 'C', 'AC01');
+
+  -- 7. Famille (enfant)
+  INSERT INTO FAMILLE (COD_SOC, MAT_PERS, NUM_FAM, PRENOM, PARENTE,
+      SEXE, DAT_NAISS, BENEF, PARENTE_ACT, COD_ACTIVITE)
+  VALUES ('01', '0000001', 1, 'Ahmed', 'E',
+      'M', DATE '2018-01-10', 'O', 'E', 'AE01');
+
+  -- 8. Compte bancaire
+  INSERT INTO COMPTE_PERS (COD_SOC, MAT_PERS, COD_BANQ, COD_AGC,
+      COD_TYP_BUL, CPT_BANQ_PERS)
+  VALUES ('01', '0000001', '07', '007', 'SAL', '07007012345678901234');
+
+  10.2. EXEMPLE COMPLET: Workflow congé annuel pour cet agent
+  ────────────────────────────────────────────────────────────
+
+  -- 1. Initialiser le solde congé annuel
+  INSERT INTO SOLD_CNG (COD_SOC, MAT_PERS, ANNEE_CNG, TYP_CNG,
+      INIT_CNG, CUM_CNG, PRIS_CNG, SOLD_CNG)
+  VALUES ('01', '0000001', 2026, 'CA',
+      5,    -- Reliquat année précédente
+      30,   -- Droit annuel
+      0,    -- Pas encore pris
+      35);  -- Solde total
+
+  -- 2. Demande de congé
+  INSERT INTO DEM_CNG (COD_SOC, MAT_PERS, NUM_DCNG, ANNEE_CNG,
+      CODE_M, DAT_DCNG, DAT_DEBUT, DAT_FIN, NBR_JOURS, NBR_JOURS_CAL,
+      VALID, ETAT_CNG, RESIDENCE, TEL)
+  VALUES ('01', '0000001', 1, 2026,
+      'CA', SYSDATE, DATE '2026-07-01', DATE '2026-07-15', 11, 15,
+      'I', NULL, 'Hammamet', '55123456');
+
+  -- 3. Validation par le chef
+  UPDATE DEM_CNG
+  SET VALID = 'O'
+  WHERE COD_SOC='01' AND MAT_PERS='0000001' AND NUM_DCNG=1;
+
+  -- 4. Mise à jour du solde
+  UPDATE SOLD_CNG
+  SET PRIS_CNG = PRIS_CNG + 11, SOLD_CNG = SOLD_CNG - 11
+  WHERE COD_SOC='01' AND MAT_PERS='0000001'
+    AND ANNEE_CNG=2026 AND TYP_CNG='CA';
+
+  10.3. EXEMPLE COMPLET: Workflow recrutement concours infirmier
+  ──────────────────────────────────────────────────────────────
+
+  -- 1. Avis de recrutement
+  INSERT INTO AVIS (NUM_AVIS, LIBELLE_AVIS, DAT_AVIS, DAT_LIMIT,
+      ETAT_AVIS, COD_SOC)
+  VALUES ('202601', 'Concours Infirmiers 2026', DATE '2026-01-15',
+      DATE '2026-03-15', 'I', '01');
+
+  -- 2. Ligne avis: 10 postes infirmiers
+  INSERT INTO LINE_AVIS (ORDR_AVIS, NUM_AVIS, CODE_DOMAINE, NOMBRE)
+  VALUES (1, '202601', 'INF', 10);
+
+  -- 3. Concours écrit
+  INSERT INTO CONCOURS (CODE_CONCOURS, LIB_CONCOURS, DATE_CONCOURS,
+      TYPE_CONCOURS, NUM_AVIS, ORDR_AVIS, CODE_DOMAINE,
+      ETAT_CONC, COD_SOC)
+  VALUES ('CONC202601', 'Concours Infirmiers - Écrit', DATE '2026-05-01',
+      'E', '202601', 1, 'INF', 'I', '01');
+
+  -- 4. Épreuves du concours
+  INSERT INTO LINE_CONCOURS (CODE_EPREUVE, CODE_CONCOURS, COEF)
+  VALUES ('CG', 'CONC202601', 1);      -- Culture générale, coef 1
+  INSERT INTO LINE_CONCOURS (CODE_EPREUVE, CODE_CONCOURS, COEF)
+  VALUES ('SPEC', 'CONC202601', 3);    -- Spécialité, coef 3
+
+  -- 5. Fiche candidat
+  INSERT INTO FICHE_CANDIDAT (NUM_FICHE, COD_SOC, NOM_CAND, PREN_CAND,
+      NOM_CAND_A, PREN_CAND_A, TYP_CAND, DAT_NAIS, LIEU_NAIS,
+      COD_NAT_P, IDENTIFIANT, SEXE, ETAT_FICHE, CODE_CONCOURS,
+      DAT_CREAT_FICHE, CODE_VILLE)
+  VALUES ('CAND000001', '01', 'BOUZID', 'Amira',
+      'بوزيد', 'أميرة', 'E', DATE '1998-05-20', 'Sousse',
+      'TN', '12345678', 'F', '1', 'CONC202601',
+      SYSDATE, 'SOUS');
+
+  -- 6. Diplôme du candidat
+  INSERT INTO CAND_DIPLOM (NUM_FICHE, COD_NIVEAU, DAT_NIV,
+      CODE_DOMAINE, TYP_NIVEAU)
+  VALUES ('CAND000001', 'DINF', DATE '2020-06-30', 'INF', 'D');
+
+  -- 7. Résultat par concours
+  INSERT INTO DET_FICHE_CANDIDAT (NUM_FICHE, CODE_CONCOURS,
+      ETAT_FICHE, MOYEN_FINAL, RESULT_FINAL, CLASSEMENT)
+  VALUES ('CAND000001', 'CONC202601', '6', 15.5, 'A', 3);
+
+  -- 8. Pré-recrutement
+  INSERT INTO PERSONNEL_RECRUT (COD_SOC, MAT_PERS, NOM_PERS,
+      PREN_PERS, ETAT)
+  VALUES ('01', '0000010', 'BOUZID', 'Amira', 'I');
+
+  -- 9. Validation → INSERT dans PERSONNEL (étape 5 du Module 1)
+
+  -- 10. Stage probatoire
+  INSERT INTO STAGE (COD_SOC, MAT_PERS, DAT_DEBUT, PERIODE,
+      DAT_FIN, ETAT, TYP_STAGE)
+  VALUES ('01', '0000010', DATE '2026-09-01', 12,
+      DATE '2027-08-31', 'E', '1');
+
+  -- 11. Compte utilisateur
+  INSERT INTO UTILISATEUR (COD_USER, COD_SOC, MAT_PERS, LOGIN,
+      MOT_PASSE, ROLE_USER, ETAT_USER, DAT_CREATION)
+  VALUES ('USR010', '01', '0000010', 'amira.bouzid@sante.tn',
+      '$2a$10$...hash...', 'AGENT', 'A', SYSDATE);
+
+
+================================================================================
+SECTION 11: ERREURS FRÉQUENTES ET SOLUTIONS
+================================================================================
+
+  11.1. VIOLATION DE CLÉ ÉTRANGÈRE
+  ─────────────────────────────────
+  Cause: Insérer un enfant AVANT son parent
+  Solution: Suivre l'ORDRE D'INSERTION de la Section 2
+
+  Exemples courants:
+  ┌──────────────────────────────────────────────────────────────┐
+  │  Erreur                       │  Solution                  │
+  ├──────────────────────────────────────────────────────────────┤
+  │  PERSONNEL avant SERVICE      │  Insérer SERVICE d'abord   │
+  │  DEM_CNG avant MOTIF_J        │  Insérer MOTIF_J d'abord   │
+  │  SERVICE enfant avant parent   │  Insérer MIN avant DRS    │
+  │  UTILISATEUR avant PERSONNEL   │  Insérer PERSONNEL d'abord│
+  │  LINE_AVIS avant AVIS          │  Insérer AVIS d'abord     │
+  └──────────────────────────────────────────────────────────────┘
+
+  11.2. VIOLATION DE TAILLE
+  ──────────────────────────
+  Cause: Valeur trop longue pour le VARCHAR2
+  CAS CRITIQUE CORRIGÉ: SERVICE.TYPE_SERV était VARCHAR2(2),
+    maintenant VARCHAR2(4) pour accepter MIN/CAB/DRS/CHU/SMED/SCHR...
+
+  Vérifications:
+  ┌──────────────────────────────────────────────────────────────┐
+  │  Colonne        │  Max chars  │  Erreur si                 │
+  ├──────────────────────────────────────────────────────────────┤
+  │  COD_SOC        │  4          │  > 4 chars                 │
+  │  MAT_PERS       │  10         │  > 10 chars                │
+  │  COD_SERV       │  10         │  > 10 chars                │
+  │  TYPE_SERV      │  4          │  > 4 chars (ex: 'SMED'=4✓) │
+  │  COD_GOUV       │  4          │  > 4 chars                 │
+  │  COD_DELEG      │  4          │  > 4 chars                 │
+  │  NUM_FICHE      │  15         │  > 15 chars                │
+  │  LOGIN          │  50         │  > 50 chars                │
+  │  CIN            │  20         │  > 20 chars                │
+  └──────────────────────────────────────────────────────────────┘
+
+  11.3. VIOLATION DE CHECK CONSTRAINT
+  ────────────────────────────────────
+  Cause: Valeur hors de la liste admise
+  Solution: Vérifier la Section 8.2
+
+  11.4. VIOLATION D'UNICITÉ
+  ──────────────────────────
+  Cause: PK ou UNIQUE dupliqué
+  Cas courant: LOGIN dans UTILISATEUR doit être unique
+  Solution: Vérifier l'unicité avant INSERT
+
+  11.5. SERVICE SELF-REFERENCE CIRCULAIRE
+  ────────────────────────────────────────
+  Cause: Un SERVICE pointe vers un enfant ou vers lui-même
+  Solution: SER_COD_SERV doit toujours pointer vers un ancêtre
+  Vérification Oracle:
+    SELECT COD_SERV FROM SERVICE
+    WHERE COD_SOC='01'
+    START WITH SER_COD_SERV IS NULL
+    CONNECT BY NOCYCLE PRIOR COD_SERV = SER_COD_SERV;
+
+  11.6. CLÉS COMPOSITES
+  ──────────────────────
+  Plusieurs tables ont des PK composites. Il faut fournir TOUTES les
+  colonnes de la PK lors d'un INSERT, sinon erreur NOT NULL:
+
+  ┌──────────────────────────────────────────────────────────────┐
+  │  Table               │  PK composite                       │
+  ├──────────────────────────────────────────────────────────────┤
+  │  SERVICE              │  COD_SOC + COD_SERV                │
+  │  PERSONNEL            │  COD_SOC + MAT_PERS                │
+  │  CATEGORIE            │  COD_CATEG + COD_CAT               │
+  │  GRADE                │  COD_CATEG + COD_CAT + COD_GRAD    │
+  │  FONCTIONS            │  COD_FONCT + TYP_FONCT             │
+  │  ACTIVITE_FAMILLE     │  COD_ACTIVITE + PARENTE_ACT        │
+  │  CODE_AFFILIATION     │  TYP_AFFIL + COD_AFFIL             │
+  │  FAMILLE              │  COD_SOC + MAT_PERS + NUM_FAM      │
+  │  ADR_PERS             │  COD_SOC + MAT_PERS + NUM_ADR      │
+  │  SOLD_CNG             │  COD_SOC+MAT_PERS+ANNEE_CNG+TYP_CNG│
+  │  DEM_CNG              │  COD_SOC + MAT_PERS + NUM_DCNG     │
+  │  SALLE                │  COD_ETAB_CONC + COD_SALLE         │
+  │  CAND_DIPLOM          │  NUM_FICHE + COD_NIVEAU            │
+  │  DET_FICHE_CANDIDAT   │  NUM_FICHE + CODE_CONCOURS         │
+  │  LINE_CONCOURS        │  CODE_EPREUVE + CODE_CONCOURS      │
+  └──────────────────────────────────────────────────────────────┘
+
+
+################################################################################
+#  FIN DU GUIDE DE GÉNÉRATION DE DONNÉES                                      #
+################################################################################

@@ -768,7 +768,7 @@ CREATE TABLE SERVICE (
     SER_COD_SERV    VARCHAR2(10),               -- Code service niveau supérieur
     LIB_SERV        VARCHAR2(120) NOT NULL,
     ABR_SERV        VARCHAR2(10),
-    TYPE_SERV       VARCHAR2(2),                 -- Niveau de service (voir TYPE_ORG)
+    TYPE_SERV       VARCHAR2(4),                 -- Niveau de service (voir TYPE_ORG)
     LIB_SERV_A      VARCHAR2(120),               -- Libellé en arabe
     ABR_SERV_A      VARCHAR2(10),
     TYPE_SERV_CHEF  VARCHAR2(1),
