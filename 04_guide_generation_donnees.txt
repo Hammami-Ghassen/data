@@ -4,7 +4,8 @@
 #     GRH — Ministère de la Santé Publique de Tunisie                         #
 #                                                                              #
 #     115 tables | 3 modules + UTILISATEUR                                    #
-#     Oracle 11g — Schéma GRH_BPC                                            #
+#     PostgreSQL 14+ (converti depuis Oracle 11g)                             #
+#     Schéma: GRH_BPC                                                         #
 #     Généré: 2026-03-05                                                      #
 #                                                                              #
 ################################################################################
@@ -23,6 +24,7 @@ TABLE DES MATIÈRES
   9.  Hiérarchie organisationnelle (SERVICE/TYPE_ORG) — Rappel synthétique
   10. Exemples INSERT par workflow
   11. Erreurs fréquentes et solutions
+  12. Correspondance types Oracle → PostgreSQL
 
 ================================================================================
 SECTION 1: VUE D'ENSEMBLE DES MODULES
@@ -60,6 +62,10 @@ SECTION 1: VUE D'ENSEMBLE DES MODULES
 
   Table pivot: PERSONNEL — utilisée par les 3 modules
   Constante globale: COD_SOC = '01' (un seul ministère)
+
+  FICHIERS SQL POSTGRESQL:
+    01_ddl_tables_sante_tunisie_pg.sql     → CREATE TABLE + COMMENTs
+    02_reference_data_sante_tunisie_pg.sql  → INSERT données de référence
 
 
 ================================================================================
@@ -403,16 +409,16 @@ SECTION 4: MODULE 1 — BASE DU PERSONNEL — WORKFLOW DÉTAILLÉ
     Chaîne de classification:
     ┌─────────────────────────────────────────────────────────┐
     │  CATEG (niveau 1: nature de grille)                    │
-    │    PK: COD_CATEG VARCHAR2(4)                           │
+    │    PK: COD_CATEG VARCHAR(4)                           │
     │    Ex: 'AG' (Catégorie A), 'BG' (Catégorie B)         │
     │  ↓                                                      │
     │  CATEGORIE (niveau 2: sous-catégorie)                  │
-    │    PK: COD_CATEG + COD_CAT VARCHAR2(4)                 │
+    │    PK: COD_CATEG + COD_CAT VARCHAR(4)                 │
     │    FK: COD_CATEG → CATEG, TYP_CAT → TYP_CATEGORIE     │
     │    Ex: ('AG','A1'), ('AG','A2'), ('BG','B1')           │
     │  ↓                                                      │
     │  GRADE (niveau 3: grade/échelon salarial)              │
-    │    PK: COD_CATEG + COD_CAT + COD_GRAD VARCHAR2(4)      │
+    │    PK: COD_CATEG + COD_CAT + COD_GRAD VARCHAR(4)      │
     │    FK: (COD_CATEG, COD_CAT) → CATEGORIE                │
     │    Ex: ('AG','A1','G01'), ('AG','A1','G02')            │
     └─────────────────────────────────────────────────────────┘
@@ -424,7 +430,7 @@ SECTION 4: MODULE 1 — BASE DU PERSONNEL — WORKFLOW DÉTAILLÉ
     │  FILLIERE_POSTE → POSTE_TRAV                           │
     │    POSTE_TRAV.COD_FIL FK → FILLIERE_POSTE.COD_FIL     │
     │    POSTE_TRAV.COD_METIER FK → METIER.COD_METIER       │
-    │    PK: COD_POST VARCHAR2(15)                           │
+    │    PK: COD_POST VARCHAR(15)                           │
     └─────────────────────────────────────────────────────────┘
 
   ÉTAPE 3: Créer l'organisme (PART 3, 1 table)
@@ -443,7 +449,7 @@ SECTION 4: MODULE 1 — BASE DU PERSONNEL — WORKFLOW DÉTAILLÉ
 
     Voir SECTION 9 pour l'arbre complet et les règles.
 
-    ATTENTION: SERVICE.TYPE_SERV est VARCHAR2(4) → tous les codes
+    ATTENTION: SERVICE.TYPE_SERV est VARCHAR(4) → tous les codes
     TYPE_ORG (MIN, CAB, DRS, CHU, SMED...) font 2-4 caractères.
 
   ÉTAPE 5: Créer l'agent (PART 4, PERSONNEL)
@@ -482,7 +488,7 @@ SECTION 4: MODULE 1 — BASE DU PERSONNEL — WORKFLOW DÉTAILLÉ
     │  ETAT_POSTE_TRAV → 'O','N','A'                                  │
     │                                                                  │
     │  PK: COD_SOC + MAT_PERS                                         │
-    │  MAT_PERS: VARCHAR2(10), matricule unique de l'agent            │
+    │  MAT_PERS: VARCHAR(10), matricule unique de l'agent            │
     └───────────────────────────────────────────────────────────────────┘
 
   ÉTAPE 6: Compléter le dossier agent (PART 5, 10 tables)
@@ -535,7 +541,7 @@ SECTION 5: MODULE 2 — CONGÉ ET POINTAGE — WORKFLOW DÉTAILLÉ
     MOTIF_J → Table CENTRALE du module congé:
       ┌──────────────────────────────────────────────────────────────┐
       │  Champs clés:                                              │
-      │  COD_M:          Code pointage (VARCHAR2(4))               │
+      │  COD_M:          Code pointage (VARCHAR(4))               │
       │  TYP_CNG:        FK → TYP_CONGE                           │
       │  DED_SAL:        Incidence salaire (O/N)                   │
       │  DED_CNG:        Déduit du solde congé (O/N)              │
@@ -678,7 +684,7 @@ SECTION 6: MODULE 3 — RECRUTEMENT ET CONCOURS — WORKFLOW DÉTAILLÉ
   ÉTAPE A2: Créer l'avis de recrutement
     ┌───────────────────────────────────────────────────────────────┐
     │  AVIS → Publication initiale                                 │
-    │    NUM_AVIS: VARCHAR2(6) — ex: '202601'                     │
+    │    NUM_AVIS: VARCHAR(6) — ex: '202601'                     │
     │    ETAT_AVIS: 'I'=instance, puis 'V'=validé                │
     │                                                              │
     │  LINE_AVIS → Lignes (postes ouverts par spécialité)         │
@@ -721,7 +727,7 @@ SECTION 6: MODULE 3 — RECRUTEMENT ET CONCOURS — WORKFLOW DÉTAILLÉ
 
   ÉTAPE C1: Créer le concours
     CONCOURS → Concours lié à un avis
-      PK: CODE_CONCOURS VARCHAR2(10) — ex: 'CONC202601'
+      PK: CODE_CONCOURS VARCHAR(10) — ex: 'CONC202601'
       FK: NUM_AVIS → AVIS, CODE_DOMAINE → LISTE_DOMAINE
       TYPE_CONCOURS: 'E'=écrit, 'O'=oral, 'T'=technique, 'P'=psycho
       ETAT_CONC: 'I'=saisie, 'V'=validé, 'C'=clôturé
@@ -744,7 +750,7 @@ SECTION 6: MODULE 3 — RECRUTEMENT ET CONCOURS — WORKFLOW DÉTAILLÉ
   ÉTAPE D1: Créer la fiche candidat
     ┌───────────────────────────────────────────────────────────────┐
     │  FICHE_CANDIDAT → Données complètes du candidat             │
-    │    PK: NUM_FICHE VARCHAR2(15) — ex: 'CAND000001'           │
+    │    PK: NUM_FICHE VARCHAR(15) — ex: 'CAND000001'           │
     │    FK: CODE_VILLE → VILLE                                    │
     │        COD_MOTIF_BONIF → TYPE_BONIFICATION (si applicable)   │
     │        COD_NAT_P → PAYS                                     │
@@ -821,8 +827,8 @@ SECTION 7: TABLE UTILISATEUR — WORKFLOW DÉTAILLÉ
   └────────────────────────────────────────────────────────────────────┘
 
   TABLE: UTILISATEUR
-    PK: COD_USER VARCHAR2(10)
-    UNIQUE: LOGIN VARCHAR2(50)
+    PK: COD_USER VARCHAR(10)
+    UNIQUE: LOGIN VARCHAR(50)
     FK: COD_SOC → SOCIETE
         (COD_SOC, MAT_PERS) → PERSONNEL
         NUM_FICHE → FICHE_CANDIDAT
@@ -851,32 +857,32 @@ SECTION 8: RÉFÉRENCE RAPIDE — TYPES, TAILLES, VALEURS ADMISES
   ┌──────────────────────┬──────────────┬──────────────────────────────┐
   │  Colonne             │  Type        │  Tables utilisant           │
   ├──────────────────────┼──────────────┼──────────────────────────────┤
-  │  COD_SOC             │  VARCHAR2(4) │  SOCIETE, SERVICE,          │
+  │  COD_SOC             │  VARCHAR(4)  │  SOCIETE, SERVICE,          │
   │                      │              │  PERSONNEL, + quasi toutes  │
-  │  MAT_PERS            │  VARCHAR2(10)│  PERSONNEL + enfants        │
-  │  COD_SERV            │  VARCHAR2(10)│  SERVICE                    │
-  │  COD_GOUV            │  VARCHAR2(4) │  GOUVERNORAT, DELEGATION    │
-  │  COD_DELEG           │  VARCHAR2(4) │  DELEGATION                 │
-  │  TYP_ORG / TYPE_SERV │  VARCHAR2(4) │  TYPE_ORG, SERVICE          │
-  │  COD_CATEG           │  VARCHAR2(4) │  CATEG, CATEGORIE, GRADE    │
-  │  COD_CAT             │  VARCHAR2(4) │  CATEGORIE, GRADE           │
-  │  COD_GRAD            │  VARCHAR2(4) │  GRADE                      │
-  │  COD_POST            │  VARCHAR2(15)│  POSTE_TRAV                 │
-  │  COD_FONCT           │  VARCHAR2(4) │  FONCTIONS (+TYP_FONCT)     │
-  │  COD_M               │  VARCHAR2(4) │  MOTIF_J                    │
-  │  TYP_CNG             │  VARCHAR2(4) │  TYP_CONGE                  │
-  │  NUM_FICHE           │  VARCHAR2(15)│  FICHE_CANDIDAT             │
-  │  CODE_CONCOURS       │  VARCHAR2(10)│  CONCOURS                   │
-  │  NUM_AVIS            │  VARCHAR2(6) │  AVIS                       │
-  │  COD_USER            │  VARCHAR2(10)│  UTILISATEUR                │
-  │  CODE_EPREUVE        │  VARCHAR2(10)│  EPREUVE                    │
-  │  COD_NIVEAU          │  VARCHAR2(5) │  PARAM_NIVEAU               │
-  │  COD_MVT             │  VARCHAR2(4) │  PARAM_MVT                  │
-  │  COD_MOTIF           │  VARCHAR2(4) │  MOTIF_SORT                 │
-  │  COD_AFFECT          │  VARCHAR2(4) │  AFFECTATION                │
-  │  COD_STAT            │  VARCHAR2(4) │  STATUT                     │
-  │  COD_ECH             │  NUMBER(2,0) │  ECHELON                    │
-  │  COD_PAYS            │  VARCHAR2(4) │  PAYS                       │
+  │  MAT_PERS            │  VARCHAR(10) │  PERSONNEL + enfants        │
+  │  COD_SERV            │  VARCHAR(10) │  SERVICE                    │
+  │  COD_GOUV            │  VARCHAR(4)  │  GOUVERNORAT, DELEGATION    │
+  │  COD_DELEG           │  VARCHAR(4)  │  DELEGATION                 │
+  │  TYP_ORG / TYPE_SERV │  VARCHAR(4)  │  TYPE_ORG, SERVICE          │
+  │  COD_CATEG           │  VARCHAR(4)  │  CATEG, CATEGORIE, GRADE    │
+  │  COD_CAT             │  VARCHAR(4)  │  CATEGORIE, GRADE           │
+  │  COD_GRAD            │  VARCHAR(4)  │  GRADE                      │
+  │  COD_POST            │  VARCHAR(15) │  POSTE_TRAV                 │
+  │  COD_FONCT           │  VARCHAR(4)  │  FONCTIONS (+TYP_FONCT)     │
+  │  COD_M               │  VARCHAR(4)  │  MOTIF_J                    │
+  │  TYP_CNG             │  VARCHAR(4)  │  TYP_CONGE                  │
+  │  NUM_FICHE           │  VARCHAR(15) │  FICHE_CANDIDAT             │
+  │  CODE_CONCOURS       │  VARCHAR(10) │  CONCOURS                   │
+  │  NUM_AVIS            │  VARCHAR(6)  │  AVIS                       │
+  │  COD_USER            │  VARCHAR(10) │  UTILISATEUR                │
+  │  CODE_EPREUVE        │  VARCHAR(10) │  EPREUVE                    │
+  │  COD_NIVEAU          │  VARCHAR(5)  │  PARAM_NIVEAU               │
+  │  COD_MVT             │  VARCHAR(4)  │  PARAM_MVT                  │
+  │  COD_MOTIF           │  VARCHAR(4)  │  MOTIF_SORT                 │
+  │  COD_AFFECT          │  VARCHAR(4)  │  AFFECTATION                │
+  │  COD_STAT            │  VARCHAR(4)  │  STATUT                     │
+  │  COD_ECH             │  SMALLINT    │  ECHELON                    │
+  │  COD_PAYS            │  VARCHAR(4)  │  PAYS                       │
   └──────────────────────┴──────────────┴──────────────────────────────┘
 
   8.2. COLONNES CHECK — VALEURS ADMISES
@@ -949,7 +955,7 @@ SECTION 9: HIÉRARCHIE ORGANISATIONNELLE — RAPPEL SYNTHÉTIQUE
   │  Mécanisme: adjacency list (SER_COD_SERV = parent)           │
   │  23 codes TYPE_ORG (RANG 1-23)                                │
   │  124 nœuds SERVICE (dont 5 établissements + services internes)│
-  │  COD_SERV: VARCHAR2(10), TYPE_SERV: VARCHAR2(4)              │
+  │  COD_SERV: VARCHAR(10), TYPE_SERV: VARCHAR(4)              │
   │                                                                │
   │  Insertion SERVICE: parent AVANT enfant, sinon FK violation    │
   │  PERSONNEL.COD_SERV pointe vers un nœud feuille               │
@@ -1147,9 +1153,9 @@ SECTION 11: ERREURS FRÉQUENTES ET SOLUTIONS
 
   11.2. VIOLATION DE TAILLE
   ──────────────────────────
-  Cause: Valeur trop longue pour le VARCHAR2
-  CAS CRITIQUE CORRIGÉ: SERVICE.TYPE_SERV était VARCHAR2(2),
-    maintenant VARCHAR2(4) pour accepter MIN/CAB/DRS/CHU/SMED/SCHR...
+  Cause: Valeur trop longue pour le VARCHAR
+  CAS CRITIQUE CORRIGÉ: SERVICE.TYPE_SERV était VARCHAR(2),
+    maintenant VARCHAR(4) pour accepter MIN/CAB/DRS/CHU/SMED/SCHR...
 
   Vérifications:
   ┌──────────────────────────────────────────────────────────────┐
@@ -1211,6 +1217,42 @@ SECTION 11: ERREURS FRÉQUENTES ET SOLUTIONS
   │  DET_FICHE_CANDIDAT   │  NUM_FICHE + CODE_CONCOURS         │
   │  LINE_CONCOURS        │  CODE_EPREUVE + CODE_CONCOURS      │
   └──────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+SECTION 12: CORRESPONDANCE TYPES ORACLE → POSTGRESQL
+================================================================================
+
+  Les fichiers _pg.sql utilisent des types PostgreSQL natifs.
+  Voici la table de correspondance appliquée:
+
+  ┌───────────────────────────┬───────────────────────────┬────────────────────┐
+  │  Oracle                  │  PostgreSQL               │  Notes             │
+  ├───────────────────────────┼───────────────────────────┼────────────────────┤
+  │  VARCHAR2(n)             │  VARCHAR(n)                             │  1239 colonnes     │
+  │  NUMBER(1,0)..NUMBER(2,0)│  SMALLINT                 │  71 colonnes       │
+  │  NUMBER(3,0)..NUMBER(9,0)│  INTEGER                  │  81 colonnes       │
+  │  NUMBER(10,0)+           │  BIGINT                   │  17 colonnes       │
+  │  NUMBER(p,s) avec s>0    │  NUMERIC(p,s)             │  ~90 colonnes      │
+  │  NUMBER (sans précision) │  NUMERIC                  │  ~approx           │
+  │  NUMBER(n) (1 arg)       │  SMALLINT/INTEGER/BIGINT  │  19 colonnes       │
+  │  BLOB                    │  BYTEA                    │  1 colonne         │
+  │  DATE                    │  DATE                     │  Identique ✓       │
+  │  DEFAULT SYSDATE         │  DEFAULT CURRENT_TIMESTAMP│  1 occurrence      │
+  │  TO_DATE('...','fmt')    │  DATE 'YYYY-MM-DD'        │  30 dans données   │
+  │  COMMENT ON              │  COMMENT ON               │  Identique ✓       │
+  │  CHECK (...)             │  CHECK (...)              │  Identique ✓       │
+  │  FOREIGN KEY             │  FOREIGN KEY              │  Identique ✓       │
+  │  PRIMARY KEY             │  PRIMARY KEY              │  Identique ✓       │
+  └───────────────────────────┴───────────────────────────┴────────────────────┘
+
+  FICHIERS GÉNÉRÉS:
+    01_ddl_tables_sante_tunisie_pg.sql      (4046 lignes, 115 CREATE TABLE)
+    02_reference_data_sante_tunisie_pg.sql   (1701 lignes, 986 INSERT)
+
+  ORIGINAUX ORACLE CONSERVÉS:
+    01_ddl_tables_sante_tunisie.sql          (original Oracle 11g)
+    02_reference_data_sante_tunisie.sql      (original Oracle 11g)
 
 
 ################################################################################
