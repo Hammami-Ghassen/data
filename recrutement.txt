@@ -1,0 +1,725 @@
+
+Table FICHE_CANDIDAT : 
+Colonnes : 
+NUM_FICHE                 varchar2(15)    <pk>     numéro fiche
+COD_SOC                     varchar2(4)                    code société
+MAT_PERS                   varchar2(10)                  matricule personnel
+NOM_CAND                varchar2(40)                  nom candidat
+PREN_CAND                varchar2(40)                  prénom candidat    
+TYP_CAND                   varchar2(1)    	           type candidat
+NOM_JF                       varchar2(80)    
+DAT_NAIS                    DATE	                                date de naissance
+LIEU_NAIS                   varchar2(200)    	            lieu de naissance
+COD_NAT_P                varchar2(4)   	  
+ADRESSE                      varchar2(100)    
+IDENTIFIANT 	varchar2(20)    
+TYP_IDENTIFIANT	varchar2(1)    	type identifiant
+DAT_EMI_IDENT	DATE    
+LIEU_EMI_IDENT       varchar2(100)    
+NUM_PERMIS	varchar2(10)    	numéro permis
+DAT_OBT_PERMIS      DATE                                date obtention permis
+SIT_FAM                       varchar2(1)    	situation familiale
+NBR_ENF                      NUMBER                         nombre d’enfant
+PROF_CONJ	varchar2(30)   
+ORG_PROF_CONJ               varchar2(50)
+TAILLE                                   NUMBER     
+POIDS                                   NUMBER 
+GRP_SANGUIN                   varchar2(30)                      groupe sanguin 
+ETAT_SANTE                       varchar2(1)                         etat sante
+HANDICAP                          varchar2(1)
+NOM_HANDICAP              varchar2(100)
+ANTECED_JUDICIAIRE       varchar2(1)                     antécédent judiciaire
+DAT_ANTECED_JUD           DATE                       date antécédent judiciaire 
+SERV_MILITAIRE                varchar2(20)           service militaire
+ACTION_PREVUE              varchar2(100)
+DAT_CREAT_FICHE            DATE                        date creation fiche
+DAT_MAJ_FICHE               DATE                        date mise a jour fiche
+ETAT_FICHE                       varchar2(1)
+COD_SOURCE                   varchar2(6)            code source
+OBSERV                              varchar2(100)       observation
+COD_SALLE                        varchar2(2)           code salle 
+CODE_CONCOURS           varchar2(10)         
+MOYEN_FINAL                  NUMBER               moyenne finale
+RESULT_FINAL                  varchar2(1)                resultat finale
+CLASSEMENT                   NUMBER(4)
+CODE_MOYEN                varchar2(2)
+DATE_CONVOCATION    DATE
+SEXE                                  varchar2(1) 
+NUM_FAM                     NUMBER(2)                      numero famille 
+TELEPHONE                    varchar2(30)
+FAX                                   varchar2(15)
+E_MAIL                           varchar2(30)                    email
+CODE_VILLE                   varchar2(10)   <fk2> 
+COD_SERV                    varchar2(10)
+VM                                  varchar2(1)
+DF                                   varchar2(1)
+PERE                               varchar2(10)
+ANC_MAT                      varchar2(10)
+COD_MOTIF_BONIF    varchar2(4)   <fk1>        code motif bonification
+COD_REFUS                  varchar2(10)
+DAT_DEPOS_DEM        DATE                                  date depos demande     
+NUM_CACHET              NUMBER                           numéro cachet 
+ORG_SERV                     varchar2(15)    
+COD_METIER                varchar2(4)                       code metier	
+COD_POST                    varchar2(15)                     code post
+COD_GOUV                  varchar2(2)                        code gouvernement
+POURCENT_HAND      NUMBER(5,2)                  porcentage handicap
+TYP_HANDICAP          varchar2(1)                       type handicap
+NUM_FICH_HAND     varchar2(10)                    numero fichie  handicap
+COEF_COMP              NUMBER(6)
+COD_NAT_RECR         varchar2(4)
+COD_TYP_CONT        varchar2(4)
+REQUETE_ADM                    varchar2(1)
+CASIER_JUD                           varchar2(1)
+OBS_ENQUETE                      varchar2(500)
+DATE_REQUETE                      DATE
+COD_PROMO                         varchar2(4)
+ADM_TECH                            varchar2(10)
+ADRESSE_A                        varchar2(100)                         adresse en arabe
+ID_FICHE_CONDIDAT         NUMBER 
+NOM_CAND_A                 varchar2(40)           nom candidat en arabe
+PREN_CAND_A                varchar2(40)           prenom candidat en arabe   
+COD_LOC                         varchar2(4)       
+NOM_JF_A                      varchar2(80)
+
+
+TABLE    TYP_BONIFICATION : 
+Colonnes :
+COD_MOTIF_BONIF          varchar2(4)        <pk>
+LIB_MOTIF_BONIF            varchar2(120)            libelle motif binification
+LIB_MOTIF_BONIF_A      varchar2(120)  libelle motif binification arabe
+TAUX                                   NUMBER
+
+
+
+
+TABLE COMPETANCE_CANDIDAT :
+Colonnes : 
+NUM_FICHE                              varchar2(15)     <pk,fk>        numero fiche
+COD_NAT_COMP                      varchar2(4)        <pk>
+COD_COMP                                 varchar2(15)     <pk>
+ID_COMPETANCE_CANDIDAT       NUMBER 
+
+TABLE FORM_CAND :
+Colonnes :
+NUM_FICHE                    varchar2(15)   <pk,fk>
+COD_FORM                     varchar2(10)   <pk>            code formation
+DUREE                              NUMBER 
+TYP_DUREE_FC              varchar2(1)
+COD_ETAB                       varchar2(15)
+ID_FORM_CAND            NUMBER                    id formation candidat
+
+TABLE FAMILLE_CANDIDAT :
+Colonnes :
+COD_SOC                     varchar2(4) <pk>                   code société
+NUM_FICHE                    varchar2(15)   <pk,fk>	numero fiche
+NUM_FAM                     NUMBER(2)  <pk>                    numero famille 
+COD_ACTIVITE              varchar2(4)                           code activite
+SEXE                                  varchar2(1) 
+NOM 	varchar2(60)	nom
+NOM_A 	varchar2(60)	nom en arabe
+PRENOM	varchar2(35)	prenom
+PRENOM_A	varchar2(35)	prenom en arabe
+PARENTE                          varchar2(1)         
+DAT_MAR                        DATE                                     date mariage
+NOM_JF                          varchar2(40) 
+DAT_NAISS                    DATE                                      date de naissance
+DAT_DECE                      DATE                                      date decé
+TYP_CIN                         varchar2(1)
+CIN                                  varchar2(20)
+DAT_CIN                         DATE 
+NUM_MERE                  NUMBER(2)  
+ID_FAMILLE                   NUMBER
+COD_USER                     varchar2(10)
+
+TABLE EXPERIENCE_CAND :
+Colonnes :
+NUM_FICHE                    varchar2(15)   <pk,fk>	numero fiche
+CODE_DOMAINE            varchar2(10)   <pk>
+COD_ETAB                       varchar2(15)
+DUREE_AVIS                   NUMBER 
+TYP_DUREE_FC              varchar2(1)
+COD_FONCT                   varchar2(4)
+
+TABLE DOC_CAND : 
+Colonnes : 
+NUM_FICHE                    varchar2(15)   <pk,fk>	numero fiche
+COD_DOC                         varchar2(10)   <pk>          
+NBR                                  NUMBER      
+DAT_DOC                        DATE 
+VALID                               varchar2(1)
+COD_SOC                     varchar2(4)                    code société
+ID_DOC_CAND             NUMBER
+
+
+TABLE MODELE_EVALUATION :
+Colonnes :
+NUM_MODELE                    varchar2(10)  <pk>
+LIB_MODELE	varcahr2(40)                    libelle modele
+LIB_MODELE_A	varchar2(40)            libelle modele en arabe
+TYP_MODELE                        varchar2(1)
+
+TABLE DET_FICHE_CANDIDAT :
+Colonnes : 
+NUM_FICHE                    varchar2(15)   <pk,fk>	numero fiche
+CODE_CONCOURS           varchar2(10)     <pk>
+ETAT_FICHE                       varchar2(1) 
+MOYEN_FINEL	NUMBER
+RESULT_FINAL    	varchar2(1)
+CLASSSEMENT	NUMBER(4)
+
+TABLE VILLE :
+Colonnes : 
+CODE_VILLE                   varchar2(10)    <pk>
+LIB_VILLE                       varchar2(40)                             libelle ville
+LIB_VILLE_A                   varchar2(40)                         libelle ville en arabe
+
+TABLE CAND_DIPLOM :
+Colonnes : 
+NUM_FICHE                    varchar2(15)   <pk,fk2>	numero fiche
+COD_NIVEAU                 varchar2(5)      <pk,fk1>
+DAT_NIV                          DATE                                     date niveau
+CODE_DOMAINE          varchar2(10)
+CODE_OPTION              varchar2(10)
+COD_ETAB                      varchar2(15) 
+TYP_NIVEAU                   varchar2(1)
+ID_CAND_DIPLOM         NUMBER   
+
+TABLE PARAM_NIVEAU : 
+Colonnes :
+COD_NIVEAU                 varchar2(5)      <pk>
+LIB_NIVEAU                    varchar2(60)                           libelle niveau 
+TYP_NIVEAU                   varchar2(1)
+ETUDE                            varchar2(3)
+CYCLE                              varchar2(3)
+NAT_NIVEAU                 varchar2(4)
+CODE_DOMAINE          varchar2(10)
+NBR_AN                         NUMBER(4,2)
+LIB_NIVEAU_A              varchar2(60)                    libelle niveau en arabe
+RANG                              NUMBER(3)
+
+TABLE DIPLOME_AVIS :
+Colonnes :
+NUM_AVIS                   varchar2(6)    <pk,fk1>
+ORDR_AVIS                  NUMBER        <pk>
+CODE_DOMAINE       varchar2(10)  <pk>
+COD_NIVEAU              varchar2(5)    <pk,fk2>
+CODE_OPTION              varchar2(10)
+COD_ETAB                      varchar2(15) 
+DATE_OBT                      DATE 
+ETAT                                 varchar2(1)
+OBLIG                              varchar2(1)
+ID_DIPLOME_AVIS         NUMBER 
+
+
+
+TABLE AVIS :
+Colonnes : 
+NUM_AVIS                   varchar2(6)    <pk>
+LIBELLE_AVIS                varchar2(40)
+DATE_AVIS                     DATE
+DATE_LIMIT                   DATE 
+TYPE_AVIS                     varchar2(1)
+SITE_INSCRIP                varchar2(100)
+ADR_CORRESP             varchar2(300)
+BUR_REGIONAL           varchar2(100)
+ETAT_AVIS                     varchar2(1)
+SUJET_AVIS                   varchar2(300)
+COD_SOC                     varchar2(4)                            code société
+
+TABLE DIVERS_AVIS :
+Colonnes :
+NUM_AVIS                   varchar2(6)    <pk,fk1>
+ORDR_AVIS                  NUMBER        <pk>
+CODE_DOMAINE       varchar2(10)    <pk>
+CODE_DIVERS             varchar2(10)   <pk,fk2>
+OBSERVATION             varchar2(30)
+ETAT                              varchar2(1)
+NBR_DIVERS_AVIS     NUMBER 
+OBLIG                          varchar2(1)
+COD_SOC                     varchar2(4)                            code société
+ID_DIVERS_AVIS         NUMBER 
+
+
+TABLE FORM_AVIS :
+Colonnes :
+NUM_AVIS                   varchar2(6)    <pk,fk>
+ORDR_AVIS                  NUMBER        <pk>
+CODE_DOMAINE       varchar2(10)    <pk>
+COD_FORM               varchar2(10)      <pk>
+COD_ETAB                      varchar2(15) 
+ETAT                                 varchar2(1)
+OBLIG                              varchar2(1)
+DUREE                        NUMBER
+TYP_DUREE                varchar2(1)
+ID_FORM_AVIS           NUMBER 
+
+TABLE LINE_AVIS :
+Colonnes :
+ORDR_AVIS                  NUMBER        <pk>
+NUM_AVIS                   varchar2(6)    <pk,ak,fk>
+CODE_DOMAINE       varchar2(10)    <pk,ak>
+NOMBRE                    NUMBER
+NBR_LOI                     NUMBER 
+AGE_MAX                  NUMBER(2)
+AGE_MIN                  NUMBER(2)
+COD_SOC                     varchar2(4)                            code société
+ID_LINE_AVIS            NUMBER 
+
+TABLE DOCUMENTS_AVIS :
+Colonnes :
+ORDR_AVIS                  NUMBER        <pk,fk>
+NUM_AVIS                   varchar2(6)    <pk,fk>
+CODE_DOMAINE       varchar2(10)    <pk,fk>
+COD_DOC                    varchar2(10)      <pk>
+NBR                             NUMBER 
+OBLIG                          varchar2(1)
+COD_SOC                     varchar2(4)                            code société
+ID_DOCUMENTS_AVIS      NUMBER 
+
+TABLE DET_LINE_AVIS :
+Colonnes :
+ORDR_AVIS                  NUMBER        <pk,fk>
+NUM_AVIS                   varchar2(6)    <pk,fk>
+CODE_DOMAINE       varchar2(10)    <pk,fk>
+COD_METIER               varchar2(4)      <pk>
+COD_POST                   varchar2(15)     <pk>
+NOMBRE                      NUMBER 
+OBLIG                           varchar2(1)
+ID_DET_LINE_AVIS     NUMBER 
+
+TABLE DIPLOME_DIR :
+Colonnes :
+COD_SOC                     varchar2(4)     <pk,fk1>                       code société
+COD_SERV                   varchar2(10)   <pk,fk1>
+DAT_DIR                       DATE                 <pk,fk1>
+COD_AFF                     varchar2(10)    <pk,fk1>
+COD_METIER               varchar2(4)      <pk,fk1>
+COD_POST                   varchar2(15)     <pk,fk1>
+COD_NIVEAU              varchar2(5)    <pk,fk2>
+CODE_OPTION            varchar2(10)
+COD_ETAB                  varchar2(15)
+DATE_OBT                    DATE 
+ETAT                            varchar2(1)
+OBLIG                          varchar2(1)
+ID_DIPLOME_DIR     NUMBER 
+
+TABLE LIGNE_DIR :
+Colonnes :
+COD_SOC                     varchar2(4)     <pk >                       code société
+COD_SERV                   varchar2(10)   <pk >
+DAT_DIR                       DATE                 <pk >
+COD_AFF                     varchar2(10)    <pk>
+COD_METIER               varchar2(4)      <pk>
+COD_POST                   varchar2(15)     <pk,fk>
+COD_SOURCE              varchar2(6)
+NAT_CAND                   varchar2(1)
+NIV_URGENCE            varchar2(1)
+AGE_MAX                  NUMBER(2)
+AGE_MIN                  NUMBER(2)
+NBRE_FEM                NUMBER                             nombre feminin
+NBRE_MASC              NUMBER                           nombre masculin 
+NBRE_GEN                 NUMBER                            nombre genéral
+VALID                         varchar2(1)
+OBSERV                     varchar2(1000)
+SERV_CIBLE              varchar2(10)
+ID_LIGNE_DIR         NUMBER 
+
+TABLE METIER : 
+Colonnes :
+COD_METIER             varchar2(4)  <pk,ak>
+LIB_METIER              varchar2(60)                      libelle metier
+LIB_METIER_A          varchar2(60)                      libelle metier en arabe
+DESCRIP                     varchar2(200)                description
+DESCRIP_A               varchar2(200)                  description en arabe
+COD_AXE                  varchar2(4)   <ak,fk>
+
+
+TABLE AXE :
+Colonnes :
+COD_AXE                  varchar2(4)   <pk>
+LIB_AXE                    varchar2(60)	libelle axe
+LIB_AXE_A               varchar2(60)                                 libelle axe en arabe
+
+TABLE POST_TRAV :
+Colonnes :
+COD_METIER             varchar2(4)  <fk2>
+COD_POST                   varchar2(15)     <pk>
+POST_TYP                   varchar2(1)
+LIB_POST                    varchar2(200)                       libelle post
+LIB_POST_A               varchar2(200)                       libelle post en arabe
+ABRV_POST               varchar2(10)                         abreviation post
+ABRV_POST_A           varchar2(10)                   abreviation post en arabe
+DESCRIP                      varchar2(2000)               description
+DESCRIP_A                  varchar2(2000)               description en arabe
+SECT_ACTIVI              varchar2(200)                  secteur d’activité
+APP_NNP                   varchar2(200)
+DOM_TRAV               varchar2(400)                 domaine travaille
+NATURE_POST          varchar2(1)
+SECT_ACTIVI_A          varchar2(200)             secteur d’activité en arabe
+APP_NNP_A                  varchar2(200)
+DOM_TRAV_A               varchar2(400)           domaine travaille en arabe
+REFERENTIEL                varchar2(4)
+R_COD_METIER           varchar2(4)
+R_COD_POST               varchar2(15)
+COD_CATEG                 varchar2(4)
+COD_CAT                      varchar2(4)
+COD_GRAD                 varchar2(4)
+COD_FIL                      varchar2(4)           <fk1>             code filliere 
+
+TABLE FILLIERE_POST :
+Colonnes :
+COD_FIL                      varchar2(4)           <pk>             code filliere 
+LIB_FIL                        varchar2(100)                     libelle filliere
+CAT_DEB_FIL              varchar2(4) 	cat debut filliere
+CAT_FIN_FIL                varchar2(4)                         cat fin filliere
+LIB_FIL_A                      varchar2(100)                      libelle filière en arabe
+REG_TRAV                    varchar2(4) 
+TAUX_MAJ                    NUMBER(5,2)
+COD_METIER               varchar2(4)
+
+TABLE CONTRAT :
+Colonnes :
+COD_SOC                     varchar2(4)     <pk,fk>                       code société
+MAT_PERS                   varchar2(10)   <pk,fk>         matricule personnel
+NUM_CONTRAT         NUMBER         <pk>	numéro contrat
+COD_TYP                      varchar2(4)
+ETAT                               varchar2(1)
+NAT_CONTRAT             varchar2(4)
+DAT_CONRAT                DATE 
+DAT_ECH                        DATE 
+COD_MOTIF                  varchar2(4)
+COD_DEPT                    varchar2(4)
+COD_SERV                    varchar2(10)
+MNT_MENS                 NUMBER(10,3)
+COD_EVA                    varchar2(4)
+DATE_EVA                    DATE 
+COD_NIVEAU             varchar2(5)
+VALID                           varchar2(1)
+DUREE                          NUMBER(10)
+COD_FILL                    varchar2(10)
+NUM_ORD                 NUMBER(10)
+DAT_EFF_CONTRAT      DATE
+DAT_ORD                        DATE
+EDIT                              varchar2(1)
+DATE_CREATION             DATE 
+DATE_VALID                   DATE
+
+
+
+TABLE DETAIL_CONTRAT :
+Colonnes :
+COD_SOC                     varchar2(4)     <pk,fk>                       code société
+MAT_PERS                   varchar2(10)   <pk,fk>         matricule personnel
+NUM_CONTRAT         NUMBER         <pk,fk>	numéro contrat
+DAT_DEBUT                DATE                 <pk>
+DAT_FIN                       DATE
+SALAIRE                       NUMBER(12,3)
+COD_STAT                    varchar2(4)
+ID_DETAIL_CONTRAT      NUMBER 
+
+TABLE DIVERS_CAND :
+Colonnes :
+CODE_DIVERS             varchar2(10)  <pk,fk1>
+NUM_FICHE                varchar2(15)    <pk,fk2>     numéro fiche
+OBSERVATION             varchar2(30)
+OBSERVATION_A         varchar2(30)                     observation en arabe
+COD_SOC                     varchar2(4)                         code société
+ID_DIVERS_CAND       NUMBER
+
+
+
+TABLE LISTE_DIVERS :
+Colonnes :
+CODE_DIVERS             varchar2(10)  <pk >
+LIB_DIVERS                  varchar2(50)	libelle divers
+LIB_DIVERS_A            verchar2(50)                         libelle divers en arabe
+
+TABLE DIVERS_DIR :
+Colonnes :
+COD_SOC                     varchar2(4)     <pk,fk2 >                     code société
+COD_SERV                   varchar2(10)   <pk,fk2 >
+DAT_DIR                       DATE                 <pk,fk2 >
+COD_AFF                     varchar2(10)    <pk,fk2>
+COD_METIER               varchar2(4)      <pk,fk2>
+COD_POST                   varchar2(15)     <pk,fk2>
+CODE_DIVERS              varchar2(10)     <pk,fk1>
+OBSERVATION              varchar2(30)
+ETAT                               varchar2(1)
+NBR_DIVERS_AVIS      NUMBER
+OBLIG                            varchar2(1)
+ID_DIVERS_DIR            NUMBER
+
+TABLE FICHE_EVAL_RECRU :
+Colonnes :
+CODE_CONCOURS              varchar2(10)  <pk,fk3>
+NUM_MODELE                     varchar2(10)   <pk,fk2>
+COD_SOC                        varchar2(4) <pk >                     code société
+NUM_FICHE                    varchar2(15)  <pk,fk1>
+DATE_FICHE                     DATE 
+OBS                                   varchar2(200)      
+AVIS                                 varchar2(1)
+DECISIONS                     varchar2(100)
+RECOMMAND               varchar2(100)
+COD_AFFECT                varchar2(4)
+MAT_MEMBRE             varchar2(10)      <pk>        matricule membre
+ID_FICHE_EVAL_RECRU      NUMBER
+
+TABLE DET_FICHE_EVAL_RECRU :
+Colonnes :
+NUM_FICHE                    varchar2(15)  <pk,fk>
+DAT_FICHE                       DATE 
+COD_CRIT                        varchar2(4)  <pk>
+COD_VAL                         varchar2(4)
+VALEUR                           varchar2(1)
+COD_SOC                        varchar2(4) <pk,fk >                     code société
+CODE_CONCOURS              varchar2(10)  <pk,fk>
+NUM_MODELE                     varchar2(10)   <pk,fk>
+OBSERVATIONS                    varchar2(200)
+MAT_MEMBRE             varchar2(10)      <pk,fk>        matricule membre
+ID_ DET_FICHE_EVAL_RECRU      NUMBER 
+
+TABLE LINE_CONCOURS :
+Colonnes :
+CODE_EPREUVE                            varchar2(10)      <pk,fk1>
+CODE_CONCOURS                      varchar2(10)     <pk,fk2>
+COEF                                          NUMBER(4,2)
+NOT_ELIM                                 NUMBER(4,2)
+CODE_LANGUE                        varchar2(10)
+DUREE                                        NUMBER
+SPECIALE                                    varchar2(1)
+DAT_EPREUVE                         DATE
+HEUR_DEB_EPREUVE          NUMBER(2)      heure debut epreuve
+MIN_DEB_EPREUVE          NUMBER(2)      minute debut epreuve
+HEUR_FIN_EPREUVE          NUMBER(2)      heure fin epreuve
+MIN_DEB_EPREUVE          NUMBER(2)      minute debut epreuve
+NBR_NOTE                          NUMBER
+COD_SOC                        varchar2(4)                    code société
+ID_LINE_CONCOURS     NUMBER
+
+TABLE EPREUVE :
+Colonnes :
+CODE_EPREUVE               varchar2(10) <pk>
+LIB_EPREUVE	varchar2(40)	libelle epreuve
+TYP_EPREUVE	varchar2(1)	type epreuve
+ABRV_EPREUVE	varchar2(10)	abreviation epreuve
+LIB_EPREUVE_A	varchar2(40)               libelle epreuve en arabe
+
+TABLE CONCOURS :
+Colonnes :
+CODE_CONCOURS          varchar2(10) <pk>
+LIB_CONCOURS               varchar2(40)                     libelle concours
+COD_ETAB_CONCOURS     varchar2(10)
+DATE_CONCOURS               DATE
+TYPE_CONCOURS               varchar2(1)
+HEUR_C                              DATE                      heure concours
+LIEU_C                               varchar2(60)         lieu concours
+ETAT1                                 varchar2(2)
+MOY_CONCOURS            NUMBER(5,2)
+NUM_AVIS                        varchar2(6)
+ORDR_AVIS                       NUMBER
+CODE_DOMAINE             varchar2(10)
+TYPE_REUSSITE                varchar2(1)
+NAT_SELECT                      varchar2(1)
+ETAT_CONC                       varchar2(1)
+BONIFICATION                  varchar2(1)
+CONC_COD_CONC           varchar2(10)
+COEF                                  NUMBER(2)
+COD_CAT_CLASS           varchar2(4)  
+COD_SOC                        varchar2(4)                    code société
+
+TABLE SALLE_CONCOURS :
+Colonnes :
+CODE_CONCOURS          varchar2(10) <pk,fk2>
+COD_SALLE                      varchar2(2)   <pk,fk1>
+CAPACITE_REEL               NUMBER	capacité reel
+CAPACITE_CONC             NUMBER	capacite concours
+CODE_EPREUVE              varchar2(10) <pk>
+COD_ETAB_CONC           varchar2(4)   <pk,fk1>
+VALIDE                              varchar2(1)
+COD_SOC                        varchar2(4)                    code société
+ID_SALLE_CONCOURS       NUMBER
+
+TABLE SALLE :
+Colonnes :
+COD_SALLE                      varchar2(2)   <pk>
+LIB_SALLE                         varchar2(60)                              libelle salle 
+CAPACITE                        NUMBER
+LIB_SALLE_A                  varchar2(60)
+COD_ETAB_CONC         varchar2(4) <pk>  code établissement concours
+ID_SALLE                        NUMBER 
+
+TABLE FICHE_EVAL_STAGE :
+Colonnes :
+COD_SOC                        varchar2(4) <pk,fk1>                  code société
+MAT_PERS                      varchar2(10) <pk,fk1>         matricule personnel
+DAT_DEBUT                   DATE          <pk,fk1>
+DAT_FICHE                     DATE   
+NUM_MODELE             varchar2(10)   <fk2>
+OBS                                 varchar2(200)    
+TOT                                 NUMBER 
+MOYENNE                    NUMBER(5,2)
+ETAT                              varchar2(1)
+ID_FICHE_EVAL_STAGE                NUMBER
+
+TABLE STAGE :
+Colonnes :
+COD_SOC                        varchar2(4) <pk,fk>                  code société
+MAT_PERS                      varchar2(10) <pk,fk>         matricule personnel
+DAT_DEBUT                   DATE          <pk>
+PERIODE                        NUMBER
+DAT_FIN                        DATE
+ETAT                             varchar2(1)
+DAT_DEB_PROLG        DATE
+DAT_FIN_PROLG        DATE
+TYP_STAGE                 varchar2(1)
+PERIODE_PROLG                       NUMBER
+DAT_QUIT                              DATE
+DAT_TIT                                DATE
+
+TABLE DET_EVAL_STAGE :
+Colonnes :
+COD_SOC                        varchar2(4) <pk,fk1>                  code société
+MAT_PERS                      varchar2(10) <pk,fk1>         matricule personnel
+DAT_DEBUT                   DATE          <pk,fk1>
+COD_CRIT                    varchar2(4) <pk>	code critere
+COD_VAL                    varchar2(4) <fk2>	code valeur
+VALEUR                       NUMBER(17,2)
+NUM_MODELE          varchar2(10)
+NOTE1                       NUMBER(8,2)
+NOTE2                       NUMBER(8,2)
+APPRECIATION1        varchar2(100)
+APPRECIATION2      varchar2(100)
+COMMENTAIRE        varchar2(100)
+ID_DET_EVAL_STAGE        NUMBER
+
+TABLE VALEUR_CRITERE :
+Colonnes :
+COD_VAL                    varchar2(4) <pk>	code valeur
+LIB_VAL                      varchar2(80)	libelle valeur
+LIB_VAL_A                varchar2(80)                           libelle valeur en arabe
+
+TABLE NATURE_RECRUT :
+Colonnes :
+COD_NAT_RECR               varchar2(4) <pk>      code nature recrutement
+LIB_NAT_RECR                 varchar2(40)       libelle nature recrutement
+LIB_NAT_RECR_A    varchar2(40)   libelle nature recrutement en arabe
+TYP_CAND                  varchar2(1)              type candidat
+TYP_CONT                 varchar2(1)
+NAT_AFFECT             varchar2(1)
+COD_STAT                  varchar2(4)
+NIV_SAL                     NUMBER
+COD_ECH                   NUMBER
+
+TABLE PERSONNEL_RECRUT :
+Colonnes :
+COD_SOC                        varchar2(4) <pk>                  code société
+MAT_PERS                      varchar2(10) <pk>         matricule personnel
+COD_SERV                     varchar2(10)
+COD_FONCT                varchar2(4)
+COD_CATEG                 varchar2(4)
+COD_CAT                      varchar2(4)
+COD_GRAD                  varchar2(4)
+COD_MOTIF               varchar2(4)
+COD_NATP                 varchar2(4)
+COD_STAT                  varchar2(4)
+NOM_PERS               varchar2(40)	nom personnel
+PREN_PERS              varchar2(40)	prénom personnel
+CIN                             varchar2(20)
+SEXE                          varchar2(1)
+DAT_SERV                DATE
+DAT_FONCT            DATE
+DAT_QUALF           DATE
+DAT_CATEG             DATE
+DAT_CAT                  DATE
+DAT_GRAD              DATE
+DAT_ECH                DATE
+DAT_EMB              DATE
+DAT_ENT               DATE
+DAT_TIT                 DATE
+DAT_MOTIF           DATE
+DAT_NAIS              DATE                                     date de naissance
+ETAT_ACT             varchar2(1)
+PER_MAT_PERS         varchar2(10)
+QUALF                       varchar2(4)
+COD_SIT                   varchar2(1)
+DAT_SIT                    DATE
+CHEF_FAM              varchar2(1)
+NBRE_ENF             NUMBER(2)                nombe d’enfant
+CHARG_ENF         varchar2(4)
+CHARG_ALL          varchar2(4)
+FCT_FAM              varchar2(1)
+COD_ECH              NUMBER(2)
+COD_AFFECT        varchar2(4)
+COD_NIVEAU        varchar2(5)
+NOM_JF                varchar2(80)
+NOM_PERS_A        varchar2(60)                     nom personnel en arabe
+PREN_PERS_A        varchar2(60)                   prénom personnel en arabe
+POSTE_TRAV          varchar2(15)
+COD_METIER           varchar2(4)
+COD_USER               varchar2(10)
+DAT_MAJ                 DATE                              date mise a jour
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+         
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                     
+   
+        

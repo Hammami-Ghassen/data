@@ -1,0 +1,746 @@
+================================================================================
+DOCUMENTATION - Adaptation GRH pour le Ministère de la Santé de Tunisie
+================================================================================
+Date: 04/03/2026
+Source: Base de données Oracle GRH_BPC (Banque Postale du Congo)
+Cible: Ministère de la Santé de la République Tunisienne
+
+================================================================================
+TABLE DES MATIÈRES
+================================================================================
+1. Vue d'ensemble du projet
+2. Fichiers générés
+3. Liste des tables (44 tables)
+4. Changements structurels (DDL)
+5. Changements de données de référence
+6. Tables non modifiées
+7. Contraintes FK ajoutées
+8. Notes importantes
+9. Recommandations
+
+================================================================================
+1. VUE D'ENSEMBLE DU PROJET
+================================================================================
+
+La base de données GRH_BPC a été conçue pour la gestion des ressources humaines 
+de la Banque Postale du Congo (BPC). L'objectif est d'adapter cette structure 
+pour le Ministère de la Santé de la Tunisie, en effectuant les changements 
+minimaux nécessaires tout en préservant l'intégrité du modèle de données.
+
+Fait notable: Le système original contenait déjà des traces d'une conception 
+tunisienne (le champ DIST_LIEU_TUNIS dans PRM_LIEU_GEOGRAPHIQUE, les mouvements 
+MVT 810 mentionnant "nationalité tunisienne"), suggérant que le système a 
+initialement été conçu pour un contexte tunisien puis déployé au Congo.
+
+================================================================================
+2. FICHIERS GÉNÉRÉS
+================================================================================
+
+┌──────────────────────────────────────────────┬────────────────────────────┐
+│ Fichier                                      │ Contenu                    │
+├──────────────────────────────────────────────┼────────────────────────────┤
+│ 01_ddl_tables_sante_tunisie.sql              │ CREATE TABLE + COMMENTs    │
+│ 02_reference_data_sante_tunisie.sql          │ INSERT données référence   │
+│ 03_documentation_adaptations.txt (ce fichier)│ Documentation détaillée    │
+└──────────────────────────────────────────────┴────────────────────────────┘
+
+Ordre d'exécution:
+  1. 01_ddl_tables_sante_tunisie.sql (crée toutes les tables)
+  2. 02_reference_data_sante_tunisie.sql (insère les données de référence)
+
+================================================================================
+3. LISTE DES TABLES (44 tables)
+================================================================================
+
+Tables extraites et adaptées:
+
+ #  │ Table                    │ Modifié │ Description
+────┼──────────────────────────┼─────────┼───────────────────────────────────
+ 1  │ GOUVERNORAT              │ DONNÉES │ 24 gouvernorats tunisiens
+ 2  │ DELEGATION (ex POSTE)    │ DDL+DON │ Délégations (renommé de POSTE)
+ 3  │ LOCALITE                 │ DDL     │ FK modifié vers DELEGATION
+ 4  │ PAYS                     │ DONNÉES │ Tunisie + pays voisins
+ 5  │ TYP_CATEGORIE            │ DONNÉES │ Classification socio-prof.
+ 6  │ TYPE_ORG                 │ DONNÉES │ Hiérarchie organisation
+ 7  │ ETAT_PAIE                │ —       │ Non modifié
+ 8  │ STATUT                   │ DONNÉES │ Régimes d'imposition
+ 9  │ ECHELON                  │ —       │ Non modifié
+10  │ LISTE_DOMAINE            │ DONNÉES │ Spécialités santé
+11  │ PRM_LIEU_GEOGRAPHIQUE    │ DONNÉES │ Lieux tunisiens
+12  │ PRM_MILITAIRE            │ —       │ Non modifié (universel)
+13  │ GROUPE_SANGUIN           │ —       │ Non modifié (universel)
+14  │ PARAM_MVT                │ DONNÉES │ Mouvements de carrière
+15  │ PARAM_NIVEAU             │ DONNÉES │ Diplômes tunisiens (LMD)
+16  │ FILLIERE                 │ DONNÉES │ Filières santé
+17  │ NATURE_RECRUT            │ DONNÉES │ Modes recrutement FP
+18  │ MOTIF_SORT               │ DONNÉES │ Positions administratives
+19  │ TYPE_DEPART              │ DONNÉES │ Types de départ
+20  │ AFFECTATION              │ DONNÉES │ Statuts administratifs FP
+21  │ FONCTIONS                │ DONNÉES │ Fonctions ministère santé
+22  │ AFFELIATION              │ DONNÉES │ CNRPS, CNAM, UGTT
+23  │ CODE_AFFILIATION         │ DONNÉES │ Affiliations tunisiennes
+24  │ ACTIVITE_FAMILLE         │ DONNÉES │ Activités famille
+25  │ CATEG                    │ DONNÉES │ Classification niv. 1
+26  │ CATEGORIE                │ DONNÉES │ Classification niv. 2
+27  │ GRADE                    │ DONNÉES │ Classification niv. 3
+28  │ AXE                      │ —       │ Non modifié
+29  │ METIER                   │ —       │ Non modifié (structure)
+30  │ FILLIERE_POSTE           │ —       │ Non modifié
+31  │ POSTE_TRAV               │ —       │ Non modifié (structure)
+32  │ SOCIETE                  │ DONNÉES │ Ministère de la Santé
+33  │ SERVICE                  │ DONNÉES │ Structure ministère
+34  │ PERSONNEL                │ —       │ Non modifié (structure)
+35  │ TYP_ADM_TECH             │ DDL     │ FK ajouté vers POSTE_TRAV
+36  │ FAMILLE                  │ —       │ Non modifié
+37  │ ADR_PERS                 │ DDL     │ COD_DELEG ajusté
+38  │ RENSEIGNEMENT_PERS       │ —       │ Non modifié
+39  │ COMPTE_PERS              │ —       │ Non modifié
+40  │ CONTRAT                  │ —       │ Non modifié
+41  │ MOUVEMENT_PERS           │ —       │ Non modifié
+42  │ AFFIL_PERS               │ —       │ Non modifié
+43  │ ATTEST_TRAV              │ —       │ Non modifié
+44  │ CONSEIL_ADMINISTRATION   │ —       │ Non modifié
+
+================================================================================
+4. CHANGEMENTS STRUCTURELS (DDL)
+================================================================================
+
+4.1. POSTE → DELEGATION (RENOMMAGE)
+─────────────────────────────────────
+MOTIF: En Tunisie, la hiérarchie administrative est:
+  Gouvernorat > Délégation > Secteur (Imada) / Municipalité
+Le terme "poste" (districts au Congo) ne s'applique pas.
+
+CHANGEMENTS:
+  - Table renommée: POSTE → DELEGATION
+  - Colonne PK renommée: COD_POST → COD_DELEG
+  - Colonne renommée: LIB_POST → LIB_DELEG
+  - Colonne renommée: LIB_POST_A → LIB_DELEG_A
+  - Colonne renommée: COD_CONT → COD_CIRC (circonscription sanitaire)
+  - FK renommée: FK_DELEG_GOUV (au lieu de FK_POST_GOUV)
+
+IMPACT: Les tables suivantes sont ajustées pour référencer DELEGATION:
+  - LOCALITE.COD_POST → LOCALITE.COD_DELEG (FK vers DELEGATION)
+  - ADR_PERS: Le COD_POST existant reste comme "code postal" (pas de FK)
+
+4.2. TYP_ADM_TECH: FK AJOUTÉE VERS POSTE_TRAV
+─────────────────────────────────────────────────
+MOTIF: L'utilisateur a confirmé que TYP_ADM_TECH.COD_POST (VARCHAR2(15))
+fait référence à POSTE_TRAV.COD_POST et non pas à POSTE (DELEGATION).
+Dans la base originale, cette FK n'existait pas.
+
+CHANGEMENT:
+  - Ajout de la contrainte:
+    ALTER TABLE TYP_ADM_TECH ADD CONSTRAINT FK_ADM_TECH_POSTE_TRAV
+    FOREIGN KEY (COD_POST) REFERENCES POSTE_TRAV (COD_POST);
+    
+NOTE: Les types VARCHAR2(15) correspondent bien entre les deux tables.
+
+4.3. LOCALITE: FK VERS DELEGATION
+──────────────────────────────────
+MOTIF: Suite au renommage de POSTE en DELEGATION.
+
+CHANGEMENT:
+  - FK_LOC_POST → FK_LOC_DELEG
+  - COD_POST → COD_DELEG
+
+4.4. ADR_PERS: CLARIFICATION DES COLONNES
+──────────────────────────────────────────
+MOTIF: Clarifier la distinction entre code postal et code délégation.
+
+CHANGEMENT:
+  - COD_POST: Conservé comme code postal (VARCHAR2(4), pas de FK)
+  - COD_DELEG: Conservé comme code délégation (VARCHAR2(2), pas de FK car 
+    taille incompatible avec DELEGATION.COD_DELEG VARCHAR2(4))
+  - Ajout de commentaires explicatifs
+
+================================================================================
+5. CHANGEMENTS DE DONNÉES DE RÉFÉRENCE
+================================================================================
+
+5.1. GOUVERNORAT
+────────────────
+AVANT: 12 départements du Congo (Bouenza, Brazzaville, Cuvette, etc.)
+APRÈS: 24 gouvernorats de Tunisie avec codes ISO 3166-2:TN
+  (11=Tunis, 12=Ariana, 13=Ben Arous, 14=La Manouba, 21=Nabeul, 
+   22=Zaghouan, 23=Bizerte, 31=Béja, 32=Jendouba, 33=Le Kef, 
+   34=Siliana, 41=Kairouan, 42=Kasserine, 43=Sidi Bouzid, 
+   51=Sousse, 52=Monastir, 53=Mahdia, 61=Sfax, 71=Gafsa, 
+   72=Tozeur, 73=Kébili, 81=Gabès, 82=Médenine, 83=Tataouine)
+RAISON: Le Congo et la Tunisie ont des divisions administratives 
+différentes. Les 24 gouvernorats sont la base du découpage administratif 
+et sanitaire tunisien.
+
+5.2. DELEGATION (ex POSTE)
+──────────────────────────
+AVANT: Districts congolais (Brazzaville Centre, Bacongo, etc.)
+APRÈS: Délégations tunisiennes (échantillon fourni pour 7 gouvernorats)
+  - Grand Tunis: Tunis (15), Ariana (7), Ben Arous (12), Manouba (8)
+  - Cap Bon: Nabeul (16)
+  - Centre: Sousse (16), Sfax (16)
+RAISON: La délégation est l'unité administrative de base après le 
+gouvernorat en Tunisie. 264 délégations au total.
+NOTE: L'échantillon couvre ~90 délégations. Les 174 restantes doivent 
+être ajoutées pour les 17 gouvernorats manquants.
+
+5.3. SOCIETE
+────────────
+AVANT: "BANQUE POSTALE DU CONGO", Brazzaville, Congo
+APRÈS: "Ministère de la Santé" / "وزارة الصحة", Place Bab Saadoun, 
+       Tunis 1006, Tunisie
+RAISON: Adaptation au contexte tunisien du ministère de la santé.
+
+5.4. SERVICE (Structure organisationnelle)
+──────────────────────────────────────────
+AVANT: Services bancaires (Direction Centrale des Risques, DCR, DCC, 
+       Direction Crédit, etc.)
+APRÈS: Structure du Ministère de la Santé tunisien:
+  - MIN (Ministère)
+    ├── CAB (Cabinet du Ministre)
+    ├── IGS (Inspection Générale de la Santé)
+    ├── DGSP (DG de la Santé Publique)
+    │   ├── DSSB (Dir. Soins de Santé de Base)
+    │   ├── DHYG (Dir. Hygiène du Milieu)
+    │   └── DPREV (Dir. Médecine Préventive)
+    ├── DGSC (DG des Services Communs)
+    │   ├── DRH (Dir. Ressources Humaines)
+    │   ├── DFIN (Dir. Affaires Financières)
+    │   ├── DBAT (Dir. Bâtiments et Équipements)
+    │   └── DINFO (Dir. Organisation et Informatique)
+    ├── DGSSP (DG des Structures Sanitaires Publiques)
+    │   ├── DHOSP (Dir. des Hôpitaux)
+    │   └── DPHARM (Dir. Pharmacie et Médicament)
+    └── DRSxx (Directions Régionales de la Santé, une par gouvernorat)
+RAISON: Structure réelle du ministère tunisien de la santé.
+
+5.5. TYP_CATEGORIE (Classification socio-professionnelle)
+────────────────────────────────────────────────────────────
+AVANT: 01=Exécution, 02=Grades, 03=Cadre et H.Classe
+APRÈS: 01=Ouvrier, 02=Agent d'exécution, 03=Agent de maîtrise, 
+       04=Cadre, 05=Cadre supérieur
+RAISON: Classification de la fonction publique tunisienne, plus 
+détaillée que la classification bancaire congolaise.
+
+5.6. CATEG (Classification niveau 1)
+─────────────────────────────────────
+AVANT: "Personnel de service", "personnel de la banque"
+APRÈS: A=Cadres supérieurs, B=Cadres, C=Agents de maîtrise, 
+       D=Agents d'exécution, HC=Hors Catégorie
+RAISON: Système de classification par catégorie (A, B, C, D) de la 
+fonction publique tunisienne.
+
+5.7. CATEGORIE (Classification niveau 2)
+─────────────────────────────────────────
+AVANT: Employés de Service, Grades, Cadres, Hors Classe (bancaire)
+APRÈS: Sous-catégories par métier de santé:
+  - A1=Médecins Spécialistes, A2=Médecins Généralistes, A3=Pharmaciens
+  - B1=Infirmiers Principaux, B2=Tech. Sup. Santé, B3=Sages-Femmes
+  - C1=Infirmiers, C2=Techniciens de Santé
+  - D1=Aides-Soignants, D2=Agents Administratifs
+  - HC1=Professeurs Hospitalo-Universitaires, HC2=MCA, HC3=PA
+RAISON: Alignement sur les corps de la santé publique tunisienne 
+(statut général des personnels de la santé publique).
+
+5.8. GRADE (Classification niveau 3)
+─────────────────────────────────────
+AVANT: Categorie 3 à 9, Classe 1 à 6 (nomenclature bancaire)
+APRÈS: Grades spécifiques par sous-catégorie médicale et paramédicale:
+  - Médecin Spécialiste → Principal → Major
+  - Médecin de Santé Publique → Principal → Major
+  - Pharmacien → Principal → Inspecteur
+  - Infirmier → Première Classe
+  - Sage-Femme → Principale → Major
+  etc.
+RAISON: Grades réels des corps de santé en Tunisie.
+
+5.9. FILLIERE (Filières professionnelles)
+─────────────────────────────────────────
+AVANT: Secrétariat, Administrative, Commerciale, Inspection, 
+       Manipulation Espèce (filières bancaires)
+APRÈS: Médicale, Paramédicale, Administrative, Technique, 
+       Ouvrière, Pharmaceutique, Dentaire
+RAISON: Filières de la santé publique tunisienne. La filière 
+"Commerciale" n'existe pas dans le secteur public de santé.
+
+5.10. FONCTIONS
+───────────────
+AVANT: DG, DGA, Chef d'Agence, DCCB (fonctions bancaires)
+APRÈS: Ministre, Secrétaire d'État, Directeur Général, Inspecteur 
+       Général, Directeur, Sous-Directeur, Chef de Service, 
+       Chef de Bureau, Dir. Régional de la Santé, Dir. d'Hôpital,
+       Médecin Chef, Surveillant Général, etc.
+RAISON: Fonctions spécifiques au secteur de la santé publique.
+
+5.11. TYPE_ORG (Types d'organisation)
+──────────────────────────────────────
+AVANT: DG, DGA, SG, CG, DC, DR, Dept, Serv, Agence (bancaire)
+APRÈS: MIN, CAB, IGS, DG, DIR, SDIR, SERV, BUR, UNIT, DRS, CHU, 
+       HR, HC, CSB, INST, LAB
+RAISON: Niveaux hiérarchiques spécifiques aux structures sanitaires 
+tunisiennes (CHU, Hôpital Régional, CSB, etc.).
+
+5.12. LISTE_DOMAINE (Spécialités)
+─────────────────────────────────
+AVANT: Banque et Finances, Courtier, Gestion (domaines bancaires)
+APRÈS: Médecine Générale, Médecine Spécialisée, Chirurgie, Pharmacie, 
+       Médecine Dentaire, Soins Infirmiers, Biologie Médicale, 
+       Radiologie, Anesthésie, Pédiatrie, Gynécologie, Épidémiologie,
+       Santé Publique, Kinésithérapie, Nutrition, Sage-femme, etc.
+RAISON: Domaines de spécialité du secteur de la santé.
+
+5.13. AFFECTATION (Statuts administratifs)
+──────────────────────────────────────────
+AVANT: CDI, CDD (droit du travail privé)
+APRÈS: Titulaire (T), Stagiaire (S), Contractuel (C), Vacataire (I),
+       Ouvrier permanent, Ouvrier occasionnel, Intérimaire
+RAISON: Le secteur public tunisien utilise les statuts de la fonction 
+publique (titulaire, stagiaire) et non CDI/CDD.
+
+5.14. CODE_AFFILIATION & AFFELIATION
+─────────────────────────────────────
+AVANT: CNAS, CNR (sécurité sociale congolaise), affiliations bancaires
+APRÈS: CNRPS (Caisse Nationale de Retraite et de Prévoyance Sociale),
+       CNSS, CNAM (Caisse Nationale d'Assurance Maladie),
+       UGTT (Union Générale Tunisienne du Travail)
+RAISON: La fonction publique tunisienne est affiliée à la CNRPS 
+(pas la CNSS qui est pour le secteur privé). La CNAM gère l'assurance 
+maladie. L'UGTT est le principal syndicat.
+
+5.15. PRM_LIEU_GEOGRAPHIQUE
+───────────────────────────
+AVANT: Quartiers de Brazzaville et villes congolaises
+APRÈS: Les 24 chefs-lieux de gouvernorat tunisiens avec distances 
+       depuis Tunis (en km)
+RAISON: Adaptation géographique pour les affectations des agents.
+
+5.16. PARAM_NIVEAU (Niveaux d'instruction)
+──────────────────────────────────────────
+AVANT: CEPE à Doctorat (niveaux relativement universels)
+APRÈS: Adapté au système tunisien (LMD depuis 2006):
+  - Ajout: Enseignement de base, BTP, BTS (Tunisia-specific)
+  - Ajout: Doctorat en Médecine, en Pharmacie, en Médecine Dentaire
+  - Ajout: Spécialité Médicale, Diplôme Infirmier, Sage-Femme
+  - Ajout: Habilitation Universitaire, Agrégation
+  - Adapté: Licence=Bac+3 (LMD), Maîtrise=Bac+4, Mastère=Bac+5
+RAISON: Le secteur de la santé nécessite des diplômes spécifiques 
+(Doctorat en médecine = 7 ans, spécialité = +4-5 ans).
+
+5.17. NATURE_RECRUT (Modes de recrutement)
+──────────────────────────────────────────
+AVANT: Concours, Recrutement direct, Concours interne, Parrainage, 
+       Poste stage
+APRÈS: Concours externe, Concours interne, Recrutement direct, 
+       Réintégration, Par contrat, Examen professionnel, Sur titre
+RAISON: Modes de recrutement de la fonction publique tunisienne. 
+Le "Parrainage" n'existe pas dans la FP tunisienne. Le recrutement 
+"Sur titre" est spécifique aux médecins et pharmaciens.
+
+5.18. PARAM_MVT (Mouvements de carrière)
+────────────────────────────────────────
+AVANT: 131 mouvements (système très complet)
+APRÈS: Échantillon de ~40 mouvements essentiels avec codification 
+       structurée (1xx=recrutement, 2xx=position, 3xx=promotion, 
+       4xx=mutation, 5xx=formation, 6xx=reclassement, 7xx=discipline, 
+       8xx=départ, 9xx=annulation)
+NOTE: Le système original de 131 mouvements était déjà très complet 
+et en grande partie applicable. Les mouvements sont fournis à titre 
+d'échantillon avec traduction arabe.
+
+================================================================================
+6. TABLES NON MODIFIÉES (STRUCTURE)
+================================================================================
+
+Les tables suivantes conservent leur structure DDL originale inchangée.
+Seuls les commentaires ont été améliorés quand nécessaire:
+
+  PERSONNEL........... Table principale des agents (120+ colonnes)
+  FAMILLE............. Membres de famille des agents
+  RENSEIGNEMENT_PERS.. Informations complémentaires
+  COMPTE_PERS......... Comptes bancaires
+  CONTRAT............. Contrats de travail
+  MOUVEMENT_PERS...... Historique des mouvements de carrière
+  AFFIL_PERS.......... Affiliations de l'agent
+  CONSEIL_ADMINISTRATION Conseil d'administration
+  ATTEST_TRAV......... Attestations de travail
+  ECHELON............. Échelons salariaux (5 échelons, 24 mois chacun)
+  PRM_MILITAIRE....... Situations militaires (universel)
+  GROUPE_SANGUIN...... Groupes sanguins (universel)
+  ETAT_PAIE........... États de paie
+  AXE................. Table support pour METIER
+  METIER.............. Groupes de métiers
+  FILLIERE_POSTE...... Filières des postes
+  POSTE_TRAV.......... Référentiel des emplois
+  ACTIVITE_FAMILLE.... Activités des membres de famille
+
+RAISON: Ces tables sont suffisamment génériques pour s'appliquer au 
+contexte tunisien sans modification structurelle. Les données à 
+insérer devront être adaptées au moment du déploiement.
+
+================================================================================
+7. CONTRAINTES FK - RÉSUMÉ
+================================================================================
+
+7.1. FK AJOUTÉE (n'existait pas dans l'original)
+─────────────────────────────────────────────────
+  TYP_ADM_TECH.COD_POST → POSTE_TRAV.COD_POST
+  Contrainte: FK_ADM_TECH_POSTE_TRAV
+  Raison: L'utilisateur a confirmé cette relation qui n'avait pas 
+  de contrainte FK dans la base originale.
+
+7.2. FK MODIFIÉES (suite au renommage POSTE → DELEGATION)
+──────────────────────────────────────────────────────────
+  LOCALITE.COD_DELEG → DELEGATION.COD_DELEG (ex: COD_POST → POSTE)
+  DELEGATION.COD_GOUV → GOUVERNORAT.COD_GOUV
+
+7.3. FK CONSERVÉES SUR PERSONNEL (20 contraintes FK)
+────────────────────────────────────────────────────
+  FK_SOCIETE_PERSONNEL......... → SOCIETE (COD_SOC)
+  FK_PERSONNEL_LISTE_DOMAINE... → LISTE_DOMAINE (CODE_DOMAINE)
+  FK_DEPART_PERSONNEL.......... → TYPE_DEPART (COD_TYP_DEPART)
+  FK_PERSONNEL_SERV_MIL........ → PRM_MILITAIRE (COD_MIL)
+  FK_PERSONNE_REF_1111_CATEGORI → CATEGORIE (COD_CATEG, COD_CAT)
+  FK_PERSONNEL_POSTE_TRAV...... → POSTE_TRAV (COD_POST)
+  FK_LIEU_GEOG................. → PRM_LIEU_GEOGRAPHIQUE (COD_LIEU_GEOG)
+  FK_PERSONNEL_GRADE........... → GRADE (COD_CATEG, COD_CAT, COD_GRAD)
+  FK_PERSONNEL_PARAM_NIVEAU.... → PARAM_NIVEAU (COD_NIVEAU)
+  FK_PERSONNEL_NATIONALITE..... → PAYS (COD_PAYS)
+  FK_PERSONNEL_ETAT_PAIE....... → ETAT_PAIE (COD_ETAT)
+  FK_PERSONNEL_ECHELON......... → ECHELON (COD_ECH)
+  FK_PERSONNEL_MOTIF_SORT...... → MOTIF_SORT (COD_MOTIF)
+  FK_PERSONNEL_STATUT.......... → STATUT (COD_STAT)
+  FK_PERSONNEL_PRM_ORGANIGRAMME → SERVICE (COD_SOC, COD_SERV)
+  FK_PERSONNEL_AFFECT.......... → AFFECTATION (COD_AFFECT)
+  FK_GROUP_SANGAIN............. → GROUPE_SANGUIN (GRP_SANG)
+  FK_NATURE_PERSONNEL.......... → NATURE_RECRUT (COD_NAT_RECR)
+
+7.4. TABLES RÉFÉRENCÉES MAIS NON EXTRAITES
+──────────────────────────────────────────
+Ces tables existent dans la base originale et sont référencées par FK 
+depuis les tables extraites, mais ne font pas partie du périmètre:
+
+  - AGENCE / BANQUE (référencées par COMPTE_PERS)
+  - REGIME / REGIME_CONGE / CYCLE_CONGE (référencées par RENSEIGNEMENT_PERS)
+  - GROUPE_POINTE (référencée par RENSEIGNEMENT_PERS)
+  - BAREME_TRANSPORT (référencée par RENSEIGNEMENT_PERS)
+
+Ces tables devront être créées séparément si nécessaire.
+
+================================================================================
+8. NOTES IMPORTANTES
+================================================================================
+
+8.1. INCOHÉRENCE DE TAILLE: GOUVERNORAT.COD_GOUV
+─────────────────────────────────────────────────
+Dans la base originale:
+  - GOUVERNORAT.COD_GOUV = VARCHAR2(4)
+  - LOCALITE.COD_GOUV = VARCHAR2(2)
+  - POSTE.COD_GOUV = VARCHAR2(2)
+  - ADR_PERS.COD_GOUV = VARCHAR2(2)
+  - PERSONNEL.COD_GOUV = VARCHAR2(2)
+
+Les codes des gouvernorats tunisiens (11, 12, 13...83) tiennent en 2 
+caractères. La taille VARCHAR2(4) dans GOUVERNORAT permet une marge 
+mais crée une incohérence avec les tables référençant.
+
+8.2. TABLE LOCALITE: VIDE DANS L'ORIGINAL
+──────────────────────────────────────────
+La table LOCALITE était vide dans la base originale. Elle peut être 
+remplie avec les secteurs (imadas) ou municipalités tunisiens selon 
+les besoins.
+
+8.3. COLONNES BILINGUES (français/arabe)
+────────────────────────────────────────
+Toutes les tables de référence ont des colonnes bilingues (LIB_xxx 
+et LIB_xxx_A) pour le support du français et de l'arabe, ce qui est 
+essentiel pour le contexte tunisien. Les données insérées incluent 
+les traductions arabes.
+
+8.4. PARAM_MVT: CONSERVATION DES DONNÉES ORIGINALES
+────────────────────────────────────────────────────
+Le fichier de données ne contient qu'un échantillon de ~40 mouvements 
+sur les 131 originaux. Les 131 mouvements originaux sont largement 
+applicables au secteur public tunisien. Il est recommandé de les 
+conserver et d'ajouter les mouvements spécifiques manquants.
+
+8.5. COD_POST DANS DIFFÉRENTS CONTEXTES
+───────────────────────────────────────
+Attention: COD_POST a deux significations différentes:
+  - Dans TYP_ADM_TECH: Réf. vers POSTE_TRAV (emploi fonctionnel)
+  - Dans ADR_PERS/SOCIETE: Code postal (pas de FK)
+  - L'ancienne table POSTE est maintenant DELEGATION (COD_DELEG)
+
+================================================================================
+9. RECOMMANDATIONS
+================================================================================
+
+9.1. COMPLÉTER LES DÉLÉGATIONS
+Ajouter les délégations manquantes pour les gouvernorats non couverts
+(Zaghouan, Bizerte, Béja, Jendouba, Le Kef, Siliana, Kairouan, 
+Kasserine, Sidi Bouzid, Monastir, Mahdia, Gafsa, Tozeur, Kébili, 
+Gabès, Médenine, Tataouine). Total: ~174 délégations manquantes.
+
+9.2. COMPLÉTER LES LIEUX GÉOGRAPHIQUES
+Ajouter les villes et localités précises correspondant aux établissements 
+de santé (CHU, hôpitaux régionaux, etc.).
+
+9.3. ADAPTER LES DONNÉES OPÉRATIONNELLES
+Les tables non remplies (METIER, POSTE_TRAV, TYP_ADM_TECH, etc.) 
+doivent être peuplées avec les emplois spécifiques au ministère.
+
+9.4. INDICES SALARIAUX
+Le système de grilles (CATEG → CATEGORIE → GRADE → ECHELON) doit être 
+complété avec les indices salariaux (NIV_SAL) et les valeurs de points 
+indiciaires (VPI) conformément au statut de la fonction publique 
+tunisienne et aux décrets relatifs aux personnels de santé.
+
+9.5. STRUCTURES SANITAIRES
+Ajouter dans SERVICE la totalité des établissements sanitaires:
+  - 24 CHU (centres hospitalo-universitaires)
+  - 33 hôpitaux régionaux
+  - 112 hôpitaux de circonscription
+  - ~2000 centres de santé de base
+Avec leur rattachement hiérarchique aux DRS respectives.
+
+9.6. TABLES COMPLÉMENTAIRES NON EXTRAITES (PHASE 1)
+Créer ou adapter les tables non incluses dans le périmètre Phase 1 mais 
+référencées par FK: BANQUE, AGENCE, etc.
+Note: REGIME et REGIME_CONGE ont été ajoutées en Phase 2 (congé/pointage).
+
+================================================================================
+PHASE 2: MODULE CONGÉ ET POINTAGE
+Date d'ajout: 2026-03-05
+================================================================================
+
+10. PÉRIMÈTRE DE LA PHASE 2
+================================================================================
+27 nouvelles tables ajoutées au module GRH, organisées en 6 sous-groupes:
+
+10.1. TABLES DE RÉFÉRENCE CONGÉ (PART 6A - 12 tables)
+  - TYP_CONGE: Types de congé (annuel, maladie, exceptionnel, etc.)
+  - REGIME_CONGE: Régimes de droit au congé annuel par ancienneté
+  - CYCLE_CONGE: Période du cycle de congé (année civile)
+  - CONDITION_CONGE: Conditions d'éligibilité par tranche d'ancienneté
+  - CRITERE_CONGE: Critères supplémentaires de congé
+  - CRITERE_CYCLE_CONGE: Critères par cycle
+  - JOUR_SEMAINE: Jours de la semaine
+  - JOURS_FERIERS: Jours fériés officiels
+  - DATE_FERIERS: Dates effectives des jours fériés par année
+  - TYP_AUTORISATION: Types d'autorisations de sortie
+  - CYCLE_POINTAGE: Cycles de pointage spéciaux 
+  - CARTE_POINT: Modèles de cartes de pointage
+
+10.2. TABLES LIÉES À LA SOCIÉTÉ (PART 6B - 5 tables)
+  - REGIME: Régimes de travail (administratif, hospitalier, garde, etc.)
+  - REGIME_REGIME: Associations entre régimes
+  - SHIF: Définition des horaires de travail (shifts)
+  - SHIFT_REG: Association shift-régime par jour de semaine
+  - CALANDRIER: Calendrier de travail par société
+
+10.3. TABLES MOTIFS D'ABSENCE (PART 6C - 3 tables)
+  - MOTIF_J: Motifs d'absence et codes de pointage journalier
+  - JUSTIF_MOTIF: Justificatifs requis par motif
+  - PLAF_MOTIF_CNG: Plafonds de maladie par statut et ancienneté
+
+10.4. TABLES SOLDES ET PLANNING (PART 6D - 5 tables)
+  - SOLD_CNG: Solde de congé par agent et année
+  - PLANING_CNG: Planning de congé annuel
+  - DETAIL_PLANING_CNG: Détail des périodes du planning
+  - VERIF_PLANING_CNG: Vérification de planification de congé
+  - RECUP_SOLD_CNG: Récupération de solde de congé
+
+10.5. TABLES DEMANDES DE CONGÉ (PART 6E - 3 tables)
+  - DEM_CNG: Demandes de congé (workflow complet avec validation)
+  - JUSTIF_DEM_CNG: Justificatifs des demandes de congé
+  - INTERIM_CNG: Intérimaires désignés pendant les congés
+
+10.6. TABLES POINTAGE (PART 6F - 6 tables)
+  - PERS_CARTE: Attribution des cartes de pointage au personnel
+  - AUTORISATION_SORT: Autorisations de sortie
+  - POINTER_IND: Pointage industriel/badgeuse
+  - POINTER: Pointage journalier résultat
+  - RETARD_JOURNEE: Retards journaliers
+  - CAL_PERS: Calendrier personnalisé par agent
+
+11. ADAPTATIONS STRUCTURELLES (DDL)
+================================================================================
+
+11.1. CLÉS ÉTRANGÈRES VERS TABLES EXISTANTES (PHASE 1)
+Les tables Phase 2 référencent par FK les tables Phase 1 suivantes:
+  - SOCIETE (COD_SOC): dans REGIME, SHIF, SHIFT_REG, CALANDRIER, SOLD_CNG, etc.
+  - PERSONNEL (MATR): dans DEM_CNG, POINTER, SOLD_CNG, PLANING_CNG, etc.
+  - RENSEIGNEMENT_PERS: dans CAL_PERS, RETARD_JOURNEE
+Ces tables ne sont PAS re-créées dans le script Phase 2.
+
+11.2. CLÉ ÉTRANGÈRE SUPPRIMÉE
+  - Table JOURS_FERIERS: la FK vers PAR_FIXE (table de paramétrage 
+    système non incluse dans le périmètre) a été supprimée.
+
+11.3. TABLE AJOUTÉE PAR DÉPENDANCE
+  - CYCLE_POINTAGE: non listée initialement par l'utilisateur, mais 
+    requise par la FK de REGIME_REGIME. Ajoutée automatiquement.
+
+11.4. COMMENTAIRES EN FRANÇAIS ET ARABE
+Tous les COMMENT ON TABLE et COMMENT ON COLUMN ont été repris depuis la 
+base source, complétés par des traductions arabes dans les données de 
+référence (colonnes LIB_*_A).
+
+12. ADAPTATIONS DES DONNÉES DE RÉFÉRENCE
+================================================================================
+
+12.1. RÉGIME DE CONGÉ ANNUEL (REGIME_CONGE)
+Adapté au droit de la fonction publique tunisienne (Décret 83-1122):
+  - Source (Congo): 7 régimes de 26 à 42 jours basés sur l'ancienneté 
+    (0, 5, 10, 15, 20, 25, 30 ans)
+  - Destination (Tunisie): 5 régimes de 22 à 30 jours:
+    * < 5 ans: 22 jours ouvrables
+    * 5-9 ans: 24 jours ouvrables
+    * 10-14 ans: 26 jours ouvrables
+    * 15-19 ans: 28 jours ouvrables
+    * 20+ ans: 30 jours ouvrables
+  - Base juridique: Statut général des personnels de l'État (loi 83-112)
+  
+12.2. CONDITIONS DE CONGÉ (CONDITION_CONGE)
+Alignées sur les 5 tranches d'ancienneté tunisiennes (5 entrées au lieu 
+de 7 dans la source).
+
+12.3. JOURS FÉRIÉS (JOURS_FERIERS et DATE_FERIERS)
+CHANGEMENT MAJEUR - Remplacement complet:
+  - Source: 10 jours fériés congolais (Pâques, Pentecôte, Toussaint, 
+    Noêl, Ind. RDC, etc.)
+  - Destination: 14 jours fériés tunisiens:
+    
+    Fêtes civiles fixes (8):
+    1. Nouvel An (1er janvier)
+    2. Fête de la Révolution et de la Jeunesse (14 janvier)
+    3. Fête de l'Indépendance (20 mars)
+    4. Journée des Martyrs (9 avril)
+    5. Fête du Travail (1er mai)
+    6. Fête de la République (25 juillet)
+    7. Fête de la Femme (13 août)
+    8. Fête de l'Évacuation (15 octobre)
+    
+    Fêtes religieuses islamiques - dates mobiles (6):
+    9. Aïd El Fitr (1er jour)
+    10. Aïd El Fitr (2ème jour)
+    11. Aïd El Idha (1er jour)
+    12. Aïd El Idha (2ème jour)
+    13. Mouled (Naissance du Prophète)
+    14. Ras El Am El Hijri (Nouvel an hégirien)
+    
+    Dates effectives fournies pour 2025-2026 (dates islamiques 
+    approximatives basées sur le calendrier hégirien).
+
+12.4. MOTIFS D'ABSENCE (MOTIF_J)
+Adaptés au contexte tunisien:
+  - Congé maternité: 60 jours (2 mois) au lieu de 90 jours
+  - Congés exceptionnels adaptés au statut FP tunisienne:
+    * Décès famille proche: 3-5 jours selon le lien
+    * Mariage: 3 jours
+    * Naissance enfant: 2 jours
+    * Pèlerinage (Hajj): 30 jours (une seule fois)
+    * Circoncision: 2 jours
+  - Positions administratives: détachement, mise en disponibilité, 
+    service national (spécifiques à la FP tunisienne)
+  - Ajout de libellés arabes (LIB_MOT_A) pour toutes les entrées
+
+12.5. TYPES D'AUTORISATION (TYP_AUTORISATION)
+Enrichi pour le secteur santé:
+  - Source: 5 types (syndicale, sortie, mission, formation, enseignement)
+  - Destination: 7 types, ajout de:
+    * Visite médicale (pertinent secteur santé)
+    * Garde / Astreinte hôpital (spécifique au personnel soignant)
+  - Libellés arabes ajoutés
+
+12.6. RÉGIMES DE TRAVAIL (REGIME)
+CHANGEMENT MAJEUR - Réécriture complète pour le secteur sanitaire:
+  - Source: 2 régimes (SIEGE, INTÉRIEUR)
+  - Destination: 6 régimes spécifiques au ministère de la Santé:
+    * AD: Régime administratif (siège ministère, DRS)
+    * HO: Régime hospitalier (CHU, hôpitaux régionaux)
+    * GR: Régime garde 24h (urgences, réanimation)
+    * 3X8: Régime 3x8h (hôpital 24/7, rotation continue)
+    * CSB: Régime centre de santé de base
+    * ALL: Régime allaitement
+
+12.7. SHIFTS (SHIF)
+CHANGEMENT MAJEUR - 9 shifts adaptés au secteur santé:
+  - Source: 4 shifts basiques
+  - Destination: 9 shifts détaillés:
+    * 01: Séance unique administrative (8h30-17h30, pause 60min)
+    * 02: Séance matin administrative (8h-12h30)
+    * 03: Séance après-midi administrative (14h-17h30)
+    * 04: Séance samedi matin (8h-13h)
+    * 05: Shift matin hôpital (7h-13h)
+    * 06: Shift soir hôpital (13h-19h)
+    * 07: Shift nuit hôpital (19h-7h)
+    * 08: Garde 24h (8h-8h)
+    * 09: Séance unique CSB (8h-15h30, pause 30min)
+
+12.8. ASSOCIATIONS SHIFT-RÉGIME (SHIFT_REG)
+Configurées pour 3 régimes (AD, HO, CSB) avec les jours ouvrables:
+  - AD: Lundi-vendredi 7h30 de travail effectif
+  - HO: Lundi-vendredi 6h shift + samedi 5h matin
+  - CSB: Lundi-vendredi 7h + samedi 5h matin
+
+12.9. JUSTIFICATIFS (JUSTIF_MOTIF)
+NOUVEAU - Table vide dans la source, complétée avec 13 entrées:
+  - Certificats médicaux pour congés maladie (CMO, MLD, maternité)
+  - PV du comité médical pour MLD
+  - Extraits d'état civil (mariage, naissance, décès)
+  - Attestation de hajj
+  - Rapport d'accident de travail + PV CNAM
+  - Certificat médical enfant (congé maladie enfant)
+  - Libellés bilingues (français + arabe)
+
+12.10. PLAFONDS MALADIE (PLAF_MOTIF_CNG)
+NOUVEAU - Adapté à la législation tunisienne:
+  - Congé maladie ordinaire (CMO):
+    * Titulaire <5 ans: 3 mois plein traitement + 3 mois demi-traitement
+    * Titulaire 5-10 ans: 6 mois PT + 6 mois DT
+    * Titulaire 10+ ans: 12 mois PT + 12 mois DT
+    * Contractuel: 1 mois par année de service
+  - Congé maladie longue durée (MLD):
+    * Titulaire <5 ans: 1 an PT + 1 an DT + 1 an sans solde
+    * Titulaire 5+ ans: 2 ans PT + 2 ans DT + 1 an sans solde
+
+13. RECOMMANDATIONS PHASE 2
+================================================================================
+
+13.1. COMPLÉTER LES DONNÉES DE RÉGIME/SHIFT
+  - Ajouter les associations SHIFT_REG pour les régimes GR, 3X8 et ALL
+  - Configurer les rotations de garde et les cycles 3x8
+
+13.2. FÊTES RELIGIEUSES ISLAMIQUES
+  - Les dates des fêtes religieuses (Aïd El Fitr, Aïd El Idha, Mouled, 
+    Ras El Am El Hijri) sont approximatives et dépendent de l'observation 
+    lunaire. Elles doivent être mises à jour chaque année par arrêté 
+    ministériel.
+  - Prévoir un mécanisme de mise à jour annuelle dans DATE_FERIERS.
+
+13.3. PLAFONDS DE CONGÉ MALADIE
+  - Vérifier les plafonds exacts avec le service juridique du ministère 
+    (les valeurs fournies sont basées sur le statut général FP).
+  - Le secteur santé peut avoir des dispositions spécifiques pour le 
+    personnel soignant (gardes, astreintes).
+
+13.4. WORKFLOW DE CONGÉ (DEM_CNG)
+  - La table DEM_CNG contient 77 colonnes avec un workflow complet  
+    (demande → validation hiérarchique → DRH → acceptation/refus).
+  - Configurer les responsables de validation par structure sanitaire.
+  - Adapter les colonnes VALIDN1/VALIDN2/VALIDN3 aux niveaux 
+    hiérarchiques du ministère.
+
+13.5. BADGEAGE ET POINTAGE
+  - Les tables POINTER_IND et POINTER supportent le pointage par 
+    badgeuse. S'assurer de la compatibilité avec le matériel de 
+    pointage déployé dans les établissements de santé.
+  - RETARD_JOURNEE permet le suivi automatisé des retards.
+
+13.6. CALENDRIER PERSONNALISÉ
+  - La table CAL_PERS permet d'affecter un calendrier de travail 
+    personnalisé par agent et par jour. Utile pour les rotations 
+    hospitalières et les gardes.
+
+================================================================================
+FIN DE LA DOCUMENTATION
+================================================================================
