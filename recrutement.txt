@@ -1,3 +1,19 @@
+================================================================================
+NOTE: Ce fichier contient les définitions brutes extraites de la base Oracle 
+GRH_BPC pour le module recrutement. Il est conservé comme RÉFÉRENCE HISTORIQUE. 
+La version DDL propre et corrigée se trouve dans PART 7 (lignes ~2770-3994) 
+du fichier 01_ddl_tables_sante_tunisie.sql.
+
+Typos connues dans ce fichier (corrigées dans le DDL):
+  - COMPETANCE_CANDIDAT → COMPETENCE_CANDIDAT
+  - "varcahr2" → VARCHAR2 (dans MODELE_EVALUATION)
+  - "verchar2" → VARCHAR2 (dans LISTE_DIVERS)
+  - "CLASSSEMENT" → CLASSEMENT (dans DET_FICHE_CANDIDAT)
+  - "ID_ DET_FICHE_EVAL_RECRU" → ID_DET_FICHE_EVAL_RECRU (espace en trop)
+  - MIN_DEB_EPREUVE dupliqué → MIN_DEB_EPREUVE + MIN_FIN_EPREUVE (LINE_CONCOURS)
+  - POST_TRAV → POSTE_TRAV (nom de table)
+  - FILLIERE_POST → FILLIERE_POSTE (nom de table)
+================================================================================
 
 Table FICHE_CANDIDAT : 
 Colonnes : 

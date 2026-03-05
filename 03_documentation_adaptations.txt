@@ -144,14 +144,16 @@ CHANGEMENT:
   - FK_LOC_POST → FK_LOC_DELEG
   - COD_POST → COD_DELEG
 
-4.4. ADR_PERS: CLARIFICATION DES COLONNES
+4.4. ADR_PERS: CLARIFICATION DES COLONNES [CORRIGÉ]
 ──────────────────────────────────────────
 MOTIF: Clarifier la distinction entre code postal et code délégation.
 
 CHANGEMENT:
   - COD_POST: Conservé comme code postal (VARCHAR2(4), pas de FK)
-  - COD_DELEG: Conservé comme code délégation (VARCHAR2(2), pas de FK car 
-    taille incompatible avec DELEGATION.COD_DELEG VARCHAR2(4))
+  - COD_DELEG: Corrigé de VARCHAR2(2) à VARCHAR2(4) pour compatibilité 
+    avec DELEGATION.COD_DELEG (PK VARCHAR2(4))
+  - COD_GOUV: Corrigé de VARCHAR2(2) à VARCHAR2(4) pour compatibilité
+    avec GOUVERNORAT.COD_GOUV (PK VARCHAR2(4))
   - Ajout de commentaires explicatifs
 
 ================================================================================
@@ -429,18 +431,24 @@ Ces tables devront être créées séparément si nécessaire.
 8. NOTES IMPORTANTES
 ================================================================================
 
-8.1. INCOHÉRENCE DE TAILLE: GOUVERNORAT.COD_GOUV
-─────────────────────────────────────────────────
-Dans la base originale:
-  - GOUVERNORAT.COD_GOUV = VARCHAR2(4)
-  - LOCALITE.COD_GOUV = VARCHAR2(2)
-  - POSTE.COD_GOUV = VARCHAR2(2)
-  - ADR_PERS.COD_GOUV = VARCHAR2(2)
+8.1. INCOHÉRENCE DE TAILLE: GOUVERNORAT.COD_GOUV [CORRIGÉ]
+─────────────────────────────────────────────────────────
+PROBLÈME INITIAL: Taille inconsistante entre PK et FK:
+  - GOUVERNORAT.COD_GOUV = VARCHAR2(4) (PK)
+  - DELEGATION.COD_GOUV = VARCHAR2(2) (FK)
+  - LOCALITE.COD_GOUV = VARCHAR2(2) (FK)
   - PERSONNEL.COD_GOUV = VARCHAR2(2)
+  - ADR_PERS.COD_GOUV = VARCHAR2(2)
+  - FICHE_CANDIDAT.COD_GOUV = VARCHAR2(2)
 
-Les codes des gouvernorats tunisiens (11, 12, 13...83) tiennent en 2 
-caractères. La taille VARCHAR2(4) dans GOUVERNORAT permet une marge 
-mais crée une incohérence avec les tables référençant.
+CORRECTION APPLIQUÉE: Toutes les colonnes COD_GOUV harmonisées à 
+VARCHAR2(4) pour correspondre au type du PK de GOUVERNORAT.
+
+8.1b. INCOHÉRENCE DE TAILLE: ADR_PERS.COD_DELEG [CORRIGÉ]
+──────────────────────────────────────────────────────────
+PROBLÈME: ADR_PERS.COD_DELEG était VARCHAR2(2) alors que 
+DELEGATION.COD_DELEG (PK) est VARCHAR2(4).
+CORRECTION: ADR_PERS.COD_DELEG changé en VARCHAR2(4).
 
 8.2. TABLE LOCALITE: VIDE DANS L'ORIGINAL
 ──────────────────────────────────────────
@@ -473,11 +481,9 @@ Attention: COD_POST a deux significations différentes:
 9. RECOMMANDATIONS
 ================================================================================
 
-9.1. COMPLÉTER LES DÉLÉGATIONS
-Ajouter les délégations manquantes pour les gouvernorats non couverts
-(Zaghouan, Bizerte, Béja, Jendouba, Le Kef, Siliana, Kairouan, 
-Kasserine, Sidi Bouzid, Monastir, Mahdia, Gafsa, Tozeur, Kébili, 
-Gabès, Médenine, Tataouine). Total: ~174 délégations manquantes.
+9.1. COMPLÉTER LES DÉLÉGATIONS [FAIT]
+Toutes les 264 délégations des 24 gouvernorats sont maintenant incluses 
+dans le fichier 02_reference_data_sante_tunisie.sql.
 
 9.2. COMPLÉTER LES LIEUX GÉOGRAPHIQUES
 Ajouter les villes et localités précises correspondant aux établissements 
@@ -494,11 +500,25 @@ indiciaires (VPI) conformément au statut de la fonction publique
 tunisienne et aux décrets relatifs aux personnels de santé.
 
 9.5. STRUCTURES SANITAIRES
-Ajouter dans SERVICE la totalité des établissements sanitaires:
-  - 24 CHU (centres hospitalo-universitaires)
-  - 33 hôpitaux régionaux
-  - 112 hôpitaux de circonscription
-  - ~2000 centres de santé de base
+Ajouter dans SERVICE la totalité des établissements sanitaires
+(données 2015, source: Ministère de la Santé / Wikipedia):
+  - 35 CHU (centres hospitalo-universitaires)
+  - 32 hôpitaux régionaux
+  - 108 hôpitaux de circonscription
+  - ~2 123 centres de santé de base (CSB)
+Principaux CHU: Hôpital Charles-Nicolle, La Rabta, Habib-Thameur,
+  Aziza Othmana, Enfants Béchir-Hamza, Razi (Tunis), Farhat-Hached,
+  Sahloul (Sousse), Fattouma-Bourguiba (Monastir), Habib-Bourguiba,
+  Hédi-Chaker (Sfax), Mongi-Slim (La Marsa), Tahar-Sfar (Mahdia),
+  Taher-Maamouri (Nabeul), CHU Bizerte.
+Instituts spécialisés: Institut Pasteur, Salah-Azaïz (oncologie),
+  Hédi-Raïs (ophtalmologie), Mohamed-Kassab (orthopédie),
+  Institut national de neurologie, Centre de traumatologie et grands 
+  brûlés, Centre national de greffe de moelle osseuse.
+Hiérarchie à 3 niveaux:
+  - 1er niveau (circonscription): HC + CSB
+  - 2ème niveau (régional): HR + DRS
+  - 3ème niveau (universitaire): CHU + Instituts spécialisés
 Avec leur rattachement hiérarchique aux DRS respectives.
 
 9.6. TABLES COMPLÉMENTAIRES NON EXTRAITES (PHASE 1)
@@ -513,7 +533,7 @@ Date d'ajout: 2026-03-05
 
 10. PÉRIMÈTRE DE LA PHASE 2
 ================================================================================
-27 nouvelles tables ajoutées au module GRH, organisées en 6 sous-groupes:
+34 nouvelles tables ajoutées au module GRH, organisées en 6 sous-groupes:
 
 10.1. TABLES DE RÉFÉRENCE CONGÉ (PART 6A - 12 tables)
   - TYP_CONGE: Types de congé (annuel, maladie, exceptionnel, etc.)
@@ -893,6 +913,87 @@ NOUVEAU - Adapté à la législation tunisienne:
      les évaluations de recrutement, 'F' pour les évaluations de
      formation/stage. Les critères et valeurs sont partagés via
      VALEUR_CRITERE.
+
+================================================================================
+15. AUDIT DE COHÉRENCE ET CORRECTIONS (Révision post-analyse)
+================================================================================
+
+15.1. CORRECTIONS APPLIQUÉES AU DDL
+────────────────────────────────────
+  a) COD_GOUV harmonisé à VARCHAR2(4) dans 5 tables:
+     - DELEGATION.COD_GOUV: VARCHAR2(2) → VARCHAR2(4)
+     - LOCALITE.COD_GOUV: VARCHAR2(2) → VARCHAR2(4)
+     - PERSONNEL.COD_GOUV: VARCHAR2(2) → VARCHAR2(4)
+     - ADR_PERS.COD_GOUV: VARCHAR2(2) → VARCHAR2(4)
+     - FICHE_CANDIDAT.COD_GOUV: VARCHAR2(2) → VARCHAR2(4)
+     Motif: Incompatibilité de taille avec le PK GOUVERNORAT.COD_GOUV
+     VARCHAR2(4). Oracle admet les FK avec tailles différentes mais
+     c'est une mauvaise pratique qui empêche de référencer des codes
+     de plus de 2 caractères.
+
+  b) ADR_PERS.COD_DELEG: VARCHAR2(2) → VARCHAR2(4)
+     Motif: Compatibilité avec DELEGATION.COD_DELEG VARCHAR2(4) PK.
+
+  c) PLANING_CNG: 2 FK ajoutées (manquantes)
+     - FK_PLANING_CNG_PERSONNEL → PERSONNEL (COD_SOC, MAT_PERS)
+     - FK_PLANING_CNG_TYP_CONGE → TYP_CONGE (TYP_CNG)
+     Motif: La table avait un commentaire "logiquement vers PERSONNEL
+     et TYP_CONGE" mais aucune contrainte FK réelle. Corrigé.
+
+  d) CONCOURS: FK vers AVIS ajoutée
+     - FK_CONCOURS_AVIS → AVIS (NUM_AVIS)
+     Motif: CONCOURS contient NUM_AVIS, ORDR_AVIS, CODE_DOMAINE
+     mais n'avait de FK que vers LISTE_DOMAINE. Ajout de la FK
+     vers AVIS pour garantir l'intégrité référentielle.
+
+15.2. CORRECTIONS APPLIQUÉES AUX DONNÉES DE RÉFÉRENCE
+──────────────────────────────────────────────────────
+  a) Délégations complétées: 169 délégations ajoutées pour les 17
+     gouvernorats manquants. Total: ~259 délégations (complet).
+     Gouvernorats ajoutés: Zaghouan(6), Bizerte(13), Béja(9),
+     Jendouba(9), Le Kef(11), Siliana(11), Kairouan(11),
+     Kasserine(12), Sidi Bouzid(12), Monastir(12), Mahdia(11),
+     Gafsa(11), Tozeur(5), Kébili(6), Gabès(10), Médenine(9),
+     Tataouine(7).
+
+15.3. INCOHÉRENCES CONNUES NON CORRIGÉES (par design)
+─────────────────────────────────────────────────────
+  a) Noms de tables hérités avec fautes d'orthographe:
+     - CALANDRIER (devrait être CALENDRIER)
+     - FILLIERE (devrait être FILIÈRE)
+     - AFFELIATION (devrait être AFFILIATION)
+     - SHIF (devrait être SHIFT)
+     → Non corrigés pour préserver la compatibilité avec le code 
+     applicatif existant de GRH_BPC.
+
+  b) POINTER_IND: Pas de FK vers PERSONNEL
+     → Volontaire: les données sont importées depuis les badgeuses
+     et peuvent contenir des badges non encore affectés.
+
+  c) VILLE vs GOUVERNORAT vs PRM_LIEU_GEOGRAPHIQUE:
+     3 tables avec données géographiques mais chacune a un rôle
+     distinct:
+     - GOUVERNORAT: division administrative officielle (24 gouv.)
+     - VILLE: résidence des candidats au recrutement (32 villes)
+     - PRM_LIEU_GEOGRAPHIQUE: lieux d'affectation du personnel (24)
+     → Pas de redondance fonctionnelle.
+
+  d) recrutement.txt vs PART 7 du DDL:
+     Le fichier recrutement.txt contient les définitions brutes
+     extraites de la base Oracle pour le module recrutement. Ces
+     définitions ont été converties en SQL DDL propre dans PART 7
+     de 01_ddl_tables_sante_tunisie.sql. Les typos présentes dans
+     recrutement.txt (COMPETANCE, varcahr2, verchar2, CLASSSEMENT,
+     etc.) ont été corrigées dans le DDL. Le fichier recrutement.txt
+     est conservé comme référence historique uniquement.
+
+15.4. DÉCOMPTE TOTAL DES TABLES
+────────────────────────────────
+  Phase 1 (base du personnel): 44 tables
+  Phase 2 (congé et pointage):  34 tables (corrigé de 27)
+  Phase 3 (recrutement):        36 tables
+  ─────────────────────────────────────
+  TOTAL:                        114 tables
 
 ================================================================================
 FIN DE LA DOCUMENTATION

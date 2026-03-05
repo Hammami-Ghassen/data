@@ -35,7 +35,7 @@ COMMENT ON COLUMN GOUVERNORAT.LIB_GOUV_A IS 'Libellé en arabe';
 -- Structure: COD_DELEG replaces COD_POST as PK, COD_CONT renamed COD_CIRC
 -- ---------------------------------------------------------------------------
 CREATE TABLE DELEGATION (
-    COD_GOUV      VARCHAR2(2)  NOT NULL,
+    COD_GOUV      VARCHAR2(4)  NOT NULL,
     COD_DELEG     VARCHAR2(4)  NOT NULL,        -- Was COD_POST in POSTE table
     LIB_DELEG     VARCHAR2(60) NOT NULL,        -- Was LIB_POST
     LIB_DELEG_A   VARCHAR2(60),                 -- Was LIB_POST_A (libellé arabe)
@@ -59,7 +59,7 @@ COMMENT ON COLUMN DELEGATION.COD_CIRC IS 'Code de la circonscription sanitaire r
 -- Changed: FK references DELEGATION instead of POSTE
 -- ---------------------------------------------------------------------------
 CREATE TABLE LOCALITE (
-    COD_GOUV      VARCHAR2(2)  NOT NULL,
+    COD_GOUV      VARCHAR2(4)  NOT NULL,
     COD_LOC       VARCHAR2(4)  NOT NULL,
     COD_DELEG     VARCHAR2(4),                  -- Was COD_POST, now references DELEGATION
     LIB_LOC       VARCHAR2(60) NOT NULL,
@@ -925,7 +925,7 @@ CREATE TABLE PERSONNEL (
     DAT_DEB_SUSPENS DATE,
     CHRONIQUE       VARCHAR2(1),
     COD_CAT_CLASS   VARCHAR2(4),
-    COD_GOUV        VARCHAR2(2),                -- Gouvernorat (adresse)
+    COD_GOUV        VARCHAR2(4),                -- Gouvernorat (adresse)
     COD_LOC         VARCHAR2(4),                -- Localité (adresse)
     NUM_ASS_GAT     VARCHAR2(10),
     NUM_ACC         VARCHAR2(20),               -- N° accident de travail
@@ -1127,8 +1127,8 @@ COMMENT ON COLUMN FAMILLE.PARENTE IS 'E=enfant, C=conjoint, M=mère, P=père, D=
 -- Changed: COD_DELEG replaces COD_POST reference to DELEGATION
 -- ---------------------------------------------------------------------------
 CREATE TABLE ADR_PERS (
-    COD_GOUV         VARCHAR2(2),
-    COD_DELEG        VARCHAR2(2),               -- Was COD_DELEG (code délégation)
+    COD_GOUV         VARCHAR2(4),
+    COD_DELEG        VARCHAR2(4),               -- Code délégation (compatible FK DELEGATION)
     COD_POST         VARCHAR2(4),               -- Code postal (NOT FK to DELEGATION)
     COD_SOC          VARCHAR2(4)  NOT NULL,
     MAT_PERS         VARCHAR2(10) NOT NULL,
@@ -2129,7 +2129,7 @@ COMMENT ON COLUMN SOLD_CNG.VALID_DROIT IS 'O=validé, N=en instance';
 
 -- ---------------------------------------------------------------------------
 -- PLANING_CNG: Planning prévisionnel de congé
--- FK: (logiquement vers PERSONNEL et TYP_CONGE)
+-- FK: PERSONNEL, TYP_CONGE
 -- ---------------------------------------------------------------------------
 CREATE TABLE PLANING_CNG (
     COD_SOC          VARCHAR2(4)  NOT NULL,
@@ -2151,7 +2151,11 @@ CREATE TABLE PLANING_CNG (
     ID_PLANING_CNG   NUMBER,
     ETAT_PLANING     VARCHAR2(2)  DEFAULT 'I',
     DAT_DEBUT        DATE,
-    CONSTRAINT PK_PLANING_CNG PRIMARY KEY (COD_SOC, MAT_PERS, ANNEE_CNG, TYP_CNG)
+    CONSTRAINT PK_PLANING_CNG PRIMARY KEY (COD_SOC, MAT_PERS, ANNEE_CNG, TYP_CNG),
+    CONSTRAINT FK_PLANING_CNG_PERSONNEL FOREIGN KEY (COD_SOC, MAT_PERS)
+        REFERENCES PERSONNEL (COD_SOC, MAT_PERS),
+    CONSTRAINT FK_PLANING_CNG_TYP_CONGE FOREIGN KEY (TYP_CNG)
+        REFERENCES TYP_CONGE (TYP_CNG)
 );
 
 COMMENT ON TABLE PLANING_CNG IS 'Planning prévisionnel de congé par agent';
@@ -2951,7 +2955,9 @@ CREATE TABLE CONCOURS (
     COD_SOC          VARCHAR2(4),
     CONSTRAINT PK_CONC PRIMARY KEY (CODE_CONCOURS),
     CONSTRAINT FK_CONCOURS FOREIGN KEY (CODE_DOMAINE)
-        REFERENCES LISTE_DOMAINE (CODE_DOMAINE)
+        REFERENCES LISTE_DOMAINE (CODE_DOMAINE),
+    CONSTRAINT FK_CONCOURS_AVIS FOREIGN KEY (NUM_AVIS)
+        REFERENCES AVIS (NUM_AVIS)
 );
 
 COMMENT ON TABLE CONCOURS IS 'Concours de recrutement - fonction publique santé';
@@ -3043,7 +3049,7 @@ CREATE TABLE FICHE_CANDIDAT (
     ORG_SERV             VARCHAR2(15),
     COD_METIER           VARCHAR2(4),
     COD_POST             VARCHAR2(15),
-    COD_GOUV             VARCHAR2(2),
+    COD_GOUV             VARCHAR2(4),
     POURCENT_HAND        NUMBER(5,2),
     TYP_HANDICAP         VARCHAR2(1),
     NUM_FICH_HAND        VARCHAR2(10),
@@ -3987,6 +3993,51 @@ COMMENT ON COLUMN DET_EVAL_STAGE.NOTE2 IS 'Note évaluateur 2';
 COMMENT ON COLUMN DET_EVAL_STAGE.APPRECIATION1 IS 'Appréciation évaluateur 1';
 COMMENT ON COLUMN DET_EVAL_STAGE.APPRECIATION2 IS 'Appréciation évaluateur 2';
 COMMENT ON COLUMN DET_EVAL_STAGE.COMMENTAIRE IS 'Commentaire général';
+
+-- ============================================================================
+-- PART 8 : TABLE UTILISATEUR (authentification et rôles)
+-- Créée en dernier car FK vers PERSONNEL (PART 3) et FICHE_CANDIDAT (PART 7)
+-- ============================================================================
+
+-- ----------------------------------------------------------------------------
+-- UTILISATEUR : Comptes utilisateurs du système GRH / portail web
+-- FK: SOCIETE, PERSONNEL, FICHE_CANDIDAT
+-- Rôles: ADMIN, DIRECTEUR, RH, AGENT, CANDIDAT
+-- ----------------------------------------------------------------------------
+CREATE TABLE UTILISATEUR (
+    COD_USER      VARCHAR2(10)  NOT NULL,
+    COD_SOC       VARCHAR2(4),
+    MAT_PERS      VARCHAR2(10),                 -- Lien vers PERSONNEL si agent/directeur/RH
+    NUM_FICHE     VARCHAR2(15),                 -- Lien vers FICHE_CANDIDAT si candidat
+    LOGIN         VARCHAR2(50)  NOT NULL,
+    MOT_PASSE     VARCHAR2(255),                -- Hash du mot de passe
+    ROLE_USER     VARCHAR2(20)  NOT NULL,       -- ADMIN, DIRECTEUR, RH, AGENT, CANDIDAT
+    ETAT_USER     VARCHAR2(1)   DEFAULT 'A',    -- A=actif, I=inactif, B=bloqué
+    DAT_CREATION  DATE          DEFAULT SYSDATE,
+    DAT_DERNIERE_CONN DATE,
+    CONSTRAINT PK_UTILISATEUR PRIMARY KEY (COD_USER),
+    CONSTRAINT UK_UTILISATEUR_LOGIN UNIQUE (LOGIN),
+    CONSTRAINT FK_UTILISATEUR_SOC FOREIGN KEY (COD_SOC)
+        REFERENCES SOCIETE (COD_SOC),
+    CONSTRAINT FK_UTILISATEUR_PERS FOREIGN KEY (COD_SOC, MAT_PERS)
+        REFERENCES PERSONNEL (COD_SOC, MAT_PERS),
+    CONSTRAINT FK_UTILISATEUR_CAND FOREIGN KEY (NUM_FICHE)
+        REFERENCES FICHE_CANDIDAT (NUM_FICHE),
+    CONSTRAINT CK_UTILISATEUR_ROLE CHECK (ROLE_USER IN ('ADMIN','DIRECTEUR','RH','AGENT','CANDIDAT')),
+    CONSTRAINT CK_UTILISATEUR_ETAT CHECK (ETAT_USER IN ('A','I','B'))
+);
+
+COMMENT ON TABLE UTILISATEUR IS 'Comptes utilisateurs du système GRH et portail web';
+COMMENT ON COLUMN UTILISATEUR.COD_USER IS 'Code utilisateur unique';
+COMMENT ON COLUMN UTILISATEUR.COD_SOC IS 'Code structure sanitaire';
+COMMENT ON COLUMN UTILISATEUR.MAT_PERS IS 'Matricule personnel (si rôle AGENT/DIRECTEUR/RH)';
+COMMENT ON COLUMN UTILISATEUR.NUM_FICHE IS 'N° fiche candidat (si rôle CANDIDAT)';
+COMMENT ON COLUMN UTILISATEUR.LOGIN IS 'Identifiant de connexion (unique)';
+COMMENT ON COLUMN UTILISATEUR.MOT_PASSE IS 'Mot de passe hashé (bcrypt/SHA-256)';
+COMMENT ON COLUMN UTILISATEUR.ROLE_USER IS 'Rôle: ADMIN, DIRECTEUR, RH, AGENT, CANDIDAT';
+COMMENT ON COLUMN UTILISATEUR.ETAT_USER IS 'A=actif, I=inactif, B=bloqué';
+COMMENT ON COLUMN UTILISATEUR.DAT_CREATION IS 'Date de création du compte';
+COMMENT ON COLUMN UTILISATEUR.DAT_DERNIERE_CONN IS 'Date de dernière connexion';
 
 -- ============================================================================
 -- END OF DDL
