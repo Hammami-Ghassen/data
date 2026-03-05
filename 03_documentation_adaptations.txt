@@ -742,5 +742,158 @@ NOUVEAU - Adapté à la législation tunisienne:
     hospitalières et les gardes.
 
 ================================================================================
+14. MODULE RECRUTEMENT ET CONCOURS (PART 7)
+================================================================================
+
+14.1. VUE D'ENSEMBLE
+  Le module recrutement couvre l'ensemble du processus d'embauche dans
+  le secteur de la santé publique tunisienne :
+  - Publication d'avis de recrutement (JORT, site du ministère)
+  - Organisation des concours (externe, interne, sur dossier)
+  - Gestion des candidatures et fiches candidats
+  - Suivi des épreuves et résultats
+  - Stage probatoire et titularisation
+  - Évaluation des candidats et des stagiaires
+
+  36 tables ajoutées, organisées en PART 7A à 7F :
+  - 7A : 7 tables de référence (VILLE, TYPE_BONIFICATION, MODELE_EVALUATION,
+         EPREUVE, SALLE, LISTE_DIVERS, VALEUR_CRITERE)
+  - 7B : 7 tables principales (AVIS, LINE_AVIS, CONCOURS, FICHE_CANDIDAT,
+         STAGE, DETAIL_CONTRAT, PERSONNEL_RECRUT)
+  - 7C : 5 tables détails avis (DIPLOME_AVIS, DIVERS_AVIS, FORM_AVIS,
+         DOCUMENT_AVIS, DET_LINE_AVIS)
+  - 7D : 2 tables concours (LINE_CONCOURS, SALLE_CONCOURS)
+  - 7E : 8 tables détails candidat (COMPETENCE_CANDIDAT, FORM_CAND,
+         FAMILLE_CANDIDAT, EXPERIENCE_CAND, DOC_CAND, DET_FICHE_CANDIDAT,
+         CAND_DIPLOM, DIVERS_CAND)
+  - 7F : 7 tables évaluation/besoins (LIGNE_DIR, DIPLOME_DIR, DIVERS_DIR,
+         FICHE_EVAL_RECRU, DET_FICHE_EVAL_RECRU, FICHE_EVAL_STAGE,
+         DET_EVAL_STAGE)
+
+14.2. TABLES PARTAGÉES AVEC LES MODULES PRÉCÉDENTS
+  Les tables suivantes existent déjà dans les PART 1 à 5 et ne sont
+  PAS recréées dans PART 7 :
+  - PARAM_NIVEAU (PART 1) : diplômes et niveaux d'études
+  - NATURE_RECRUT (PART 1) : natures de recrutement
+  - METIER (PART 2) : référentiel des métiers
+  - AXE (PART 2) : axes de regroupement métiers
+  - POSTE_TRAV (PART 2) : postes de travail
+  - FILLIERE_POSTE (PART 2) : filières de postes
+  - CONTRAT (PART 4) : contrats du personnel
+  - SOCIETE (PART 3) : structures/établissements
+  - PERSONNEL (PART 3) : table principale du personnel
+  - SERVICE (PART 3) : services organisationnels
+  - PAYS (PART 1) : référentiel des pays
+  - LISTE_DOMAINE (PART 1) : domaines/spécialités
+  - ACTIVITE_FAMILLE (PART 2) : activités des membres de famille
+
+14.3. FOREIGN KEYS SUPPRIMÉES (TABLES HORS PÉRIMÈTRE)
+  Les FK suivantes ont été retirées car elles référencent des tables
+  non incluses dans le périmètre actuel :
+
+  Table                  FK supprimée              Table cible
+  ---------------------  ------------------------  -----------------------
+  FICHE_CANDIDAT         FK_MOYEN_CONVOC           MOTIF_CORRESPONDANCE
+  FORM_AVIS              FK_FORMATION_FORMAT       FORMATION
+  FORM_CAND              FK_FORMATION              FORMATION
+  LINE_CONCOURS          FK_LANGUE_CONC            LANGUE
+  LIGNE_DIR              FK_LIGNE_DIR_SOURCE_BESOIN SOURCE_BESOIN
+  COMPETENCE_CANDIDAT    FK_COMPET                 COMPETENCE
+  CAND_DIPLOM            FK_CAND_DIP_OPTION        OPTION_DIPLOM
+
+  → Ces FK pourront être restaurées si les tables correspondantes sont
+    ajoutées ultérieurement.
+
+14.4. ADAPTATIONS SPÉCIFIQUES TUNISIE
+
+  a) VILLE : Les données source contenaient 48 wilayas algériennes.
+     Remplacées par 32 villes tunisiennes (24 chefs-lieux de gouvernorats
+     + 8 villes principales).
+
+  b) TYPE_BONIFICATION : Bonifications adaptées à la réglementation
+     tunisienne de la fonction publique :
+     - Fils/fille de chahid (5 points)
+     - Fils/fille de moudjahid (3 points)
+     - Personne handicapée (3 points)
+     - Zone de développement régional prioritaire (2 points)
+     - Expérience professionnelle dans le secteur (1 point)
+
+  c) F_MOJHD_CHEHID dans FICHE_CANDIDAT : Champ spécifique permettant
+     d'identifier les fils de moudjahid (M) ou chahid (C), utilisé pour
+     le calcul des bonifications lors des concours.
+
+  d) EPREUVE : Épreuves adaptées aux concours du Ministère de la Santé :
+     culture générale, spécialité, pratique professionnelle, technique
+     soins, psychotechnique, entretien oral, langues, droit sanitaire,
+     organisation du système de santé.
+
+  e) LISTE_DIVERS : Éléments spécifiques au secteur santé ajoutés :
+     inscription à l'Ordre des médecins/pharmaciens, attestation de
+     stage hospitalier, certificat de vaccination, diplôme de secourisme.
+
+  f) NUM_RETR dans STAGE : Adapté pour contenir le numéro CNRPS
+     (Caisse Nationale de Retraite et de Prévoyance Sociale) ou CNSS.
+
+14.5. PROCESSUS DE RECRUTEMENT
+
+  Le workflow complet suit les étapes suivantes :
+
+  1. Expression des besoins (LIGNE_DIR → DIPLOME_DIR, DIVERS_DIR)
+     Les structures sanitaires expriment leurs besoins en personnel
+     par métier, poste et spécialité.
+
+  2. Publication de l'avis (AVIS → LINE_AVIS → DIPLOME_AVIS, 
+     DIVERS_AVIS, FORM_AVIS, DOCUMENT_AVIS, DET_LINE_AVIS)
+     L'avis est publié au JORT et sur le site du ministère avec
+     les conditions requises (diplômes, expérience, documents).
+
+  3. Réception des candidatures (FICHE_CANDIDAT → COMPETENCE_CANDIDAT,
+     FORM_CAND, FAMILLE_CANDIDAT, EXPERIENCE_CAND, DOC_CAND,
+     CAND_DIPLOM, DIVERS_CAND)
+     Les fiches candidat sont saisies avec tous les détails.
+     ETAT_FICHE : 1=saisie → 2=validé → 3=sélectionné → 4=rejeté
+     → 5=convoqué → 6=admis → 7=refusé → 8=retenu → 9=recruté
+
+  4. Organisation du concours (CONCOURS → LINE_CONCOURS, SALLE_CONCOURS)
+     Création des épreuves, affectation des salles, planification.
+
+  5. Résultats (DET_FICHE_CANDIDAT, FICHE_EVAL_RECRU → DET_FICHE_EVAL_RECRU)
+     Notation par critère, classement des candidats.
+
+  6. Recrutement (PERSONNEL_RECRUT → validation → PERSONNEL)
+     Préparation du dossier administratif avant création dans PERSONNEL.
+
+  7. Stage probatoire (STAGE → FICHE_EVAL_STAGE → DET_EVAL_STAGE)
+     Suivi du stage, évaluation, titularisation ou prolongation.
+     DETAIL_CONTRAT pour les contrats à durée déterminée.
+
+14.6. PERSONNEL_RECRUT : TABLE MIROIR
+  La table PERSONNEL_RECRUT contient 93+ colonnes (miroir de PERSONNEL)
+  car elle sert de zone de préparation. Les données sont saisies ici
+  puis transférées vers PERSONNEL après validation (ETAT='V').
+  Cela permet un contrôle qualité avant la création définitive de
+  l'agent dans le système.
+
+14.7. POINTS D'ATTENTION DÉPLOIEMENT
+
+  a) VILLE vs GOUVERNORAT : La table VILLE est distincte de GOUVERNORAT
+     (PART 1). GOUVERNORAT sert pour la structure administrative,
+     VILLE pour l'adresse de résidence des candidats. Les codes ne sont
+     pas liés par FK mais doivent être cohérents.
+
+  b) Les CHECK constraints sur FAMILLE_CANDIDAT :
+     - SEXE : 'M' ou 'F'
+     - PARENTE : 'E' (enfant), 'C' (conjoint), 'M' (mère), 'P' (père),
+                 'D' (grand-mère), 'V' (grand-père)
+
+  c) SALLE : Clé primaire composite (COD_ETAB_CONC, COD_SALLE).
+     Les salles sont gérées par établissement de passage du concours.
+
+  d) Modèles d'évaluation (MODELE_EVALUATION) : TYP_MODELE='R' pour
+     les évaluations de recrutement, 'F' pour les évaluations de
+     formation/stage. Les critères et valeurs sont partagés via
+     VALEUR_CRITERE.
+
+================================================================================
 FIN DE LA DOCUMENTATION
 ================================================================================

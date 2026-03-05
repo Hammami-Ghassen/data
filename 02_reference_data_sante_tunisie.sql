@@ -1113,6 +1113,136 @@ INSERT INTO PLAF_MOTIF_CNG (COD_M, COD_AFFECT, ANCIEN_MIN, ANCIEN_MAX, PLAF_PT, 
 
 COMMIT;
 
+-- ############################################################################
+-- PART 7 : DONNÉES DE RÉFÉRENCE - MODULE RECRUTEMENT ET CONCOURS
+-- ############################################################################
+
+-- ============================================================================
+-- 35. VILLE : Villes tunisiennes (chefs-lieux de gouvernorats + villes principales)
+-- ADAPTED: Remplacement des wilayas algériennes par les villes tunisiennes
+-- ============================================================================
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('01', 'Tunis', 'تونس');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('02', 'Ariana', 'أريانة');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('03', 'Ben Arous', 'بن عروس');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('04', 'Manouba', 'منوبة');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('05', 'Nabeul', 'نابل');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('06', 'Zaghouan', 'زغوان');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('07', 'Bizerte', 'بنزرت');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('08', 'Béja', 'باجة');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('09', 'Jendouba', 'جندوبة');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('10', 'Le Kef', 'الكاف');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('11', 'Siliana', 'سليانة');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('12', 'Sousse', 'سوسة');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('13', 'Monastir', 'المنستير');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('14', 'Mahdia', 'المهدية');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('15', 'Sfax', 'صفاقس');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('16', 'Kairouan', 'القيروان');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('17', 'Kasserine', 'القصرين');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('18', 'Sidi Bouzid', 'سيدي بوزيد');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('19', 'Gabès', 'قابس');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('20', 'Médenine', 'مدنين');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('21', 'Tataouine', 'تطاوين');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('22', 'Gafsa', 'قفصة');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('23', 'Tozeur', 'توزر');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('24', 'Kébili', 'قبلي');
+-- Villes principales supplémentaires
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('25', 'Hammamet', 'الحمامات');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('26', 'La Marsa', 'المرسى');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('27', 'Hammam Lif', 'حمام الأنف');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('28', 'Msaken', 'مساكن');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('29', 'Ksar Hellal', 'قصر هلال');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('30', 'Menzel Bourguiba', 'منزل بورقيبة');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('31', 'Douz', 'دوز');
+INSERT INTO VILLE (CODE_VILLE, LIB_VILLE, LIB_VILLE_A) VALUES ('32', 'Tabarka', 'طبرقة');
+
+-- ============================================================================
+-- 36. TYPE_BONIFICATION : Bonifications concours fonction publique tunisienne
+-- ADAPTED: Bonifications selon la réglementation tunisienne
+-- Fils de chahid/moudjahid, handicapés, zones prioritaires
+-- ============================================================================
+INSERT INTO TYPE_BONIFICATION (COD_MOTIF_BONIF, LIB_MOTIF_BONIF, LIB_MOTIF_BONIF_A, TAUX) VALUES ('01', 'Fils/fille de chahid', 'إبن/إبنة شهيد', 5);
+INSERT INTO TYPE_BONIFICATION (COD_MOTIF_BONIF, LIB_MOTIF_BONIF, LIB_MOTIF_BONIF_A, TAUX) VALUES ('02', 'Fils/fille de moudjahid', 'إبن/إبنة مجاهد', 3);
+INSERT INTO TYPE_BONIFICATION (COD_MOTIF_BONIF, LIB_MOTIF_BONIF, LIB_MOTIF_BONIF_A, TAUX) VALUES ('03', 'Personne handicapée', 'شخص من ذوي الإعاقة', 3);
+INSERT INTO TYPE_BONIFICATION (COD_MOTIF_BONIF, LIB_MOTIF_BONIF, LIB_MOTIF_BONIF_A, TAUX) VALUES ('04', 'Zone de développement régional prioritaire', 'منطقة تنمية جهوية ذات أولوية', 2);
+INSERT INTO TYPE_BONIFICATION (COD_MOTIF_BONIF, LIB_MOTIF_BONIF, LIB_MOTIF_BONIF_A, TAUX) VALUES ('05', 'Expérience professionnelle dans le secteur', 'خبرة مهنية في القطاع', 1);
+
+-- ============================================================================
+-- 37. EPREUVE : Épreuves de concours secteur santé
+-- ADAPTED: Épreuves adaptées aux concours du Ministère de la Santé
+-- ============================================================================
+INSERT INTO EPREUVE (CODE_EPREUVE, LIB_EPREUVE, LIB_EPREUVE_A) VALUES ('01', 'Culture générale', 'ثقافة عامة');
+INSERT INTO EPREUVE (CODE_EPREUVE, LIB_EPREUVE, LIB_EPREUVE_A) VALUES ('02', 'Épreuve de spécialité', 'إختبار الإختصاص');
+INSERT INTO EPREUVE (CODE_EPREUVE, LIB_EPREUVE, LIB_EPREUVE_A) VALUES ('03', 'Épreuve pratique professionnelle', 'إختبار تطبيقي مهني');
+INSERT INTO EPREUVE (CODE_EPREUVE, LIB_EPREUVE, LIB_EPREUVE_A) VALUES ('04', 'Épreuve technique soins', 'إختبار تقني في التمريض');
+INSERT INTO EPREUVE (CODE_EPREUVE, LIB_EPREUVE, LIB_EPREUVE_A) VALUES ('05', 'Test psychotechnique', 'إختبار نفسي تقني');
+INSERT INTO EPREUVE (CODE_EPREUVE, LIB_EPREUVE, LIB_EPREUVE_A) VALUES ('06', 'Entretien oral', 'مقابلة شفاهية');
+INSERT INTO EPREUVE (CODE_EPREUVE, LIB_EPREUVE, LIB_EPREUVE_A) VALUES ('07', 'Langue française', 'اللغة الفرنسية');
+INSERT INTO EPREUVE (CODE_EPREUVE, LIB_EPREUVE, LIB_EPREUVE_A) VALUES ('08', 'Langue anglaise', 'اللغة الإنجليزية');
+INSERT INTO EPREUVE (CODE_EPREUVE, LIB_EPREUVE, LIB_EPREUVE_A) VALUES ('09', 'Droit administratif et sanitaire', 'القانون الإداري والصحي');
+INSERT INTO EPREUVE (CODE_EPREUVE, LIB_EPREUVE, LIB_EPREUVE_A) VALUES ('10', 'Organisation du système de santé', 'تنظيم المنظومة الصحية');
+
+-- ============================================================================
+-- 38. MODELE_EVALUATION : Modèles d'évaluation
+-- ADAPTED: Modèles adaptés au secteur santé tunisien
+-- ============================================================================
+INSERT INTO MODELE_EVALUATION (NUM_MODELE, LIB_MODELE, LIB_MODELE_A, TYP_MODELE) VALUES ('01', 'Évaluation recrutement - Catégorie A', 'تقييم إنتداب - صنف أ', 'R');
+INSERT INTO MODELE_EVALUATION (NUM_MODELE, LIB_MODELE, LIB_MODELE_A, TYP_MODELE) VALUES ('02', 'Évaluation recrutement - Catégorie B', 'تقييم إنتداب - صنف ب', 'R');
+INSERT INTO MODELE_EVALUATION (NUM_MODELE, LIB_MODELE, LIB_MODELE_A, TYP_MODELE) VALUES ('03', 'Évaluation recrutement - Ouvriers', 'تقييم إنتداب - عملة', 'R');
+INSERT INTO MODELE_EVALUATION (NUM_MODELE, LIB_MODELE, LIB_MODELE_A, TYP_MODELE) VALUES ('04', 'Évaluation de stage probatoire', 'تقييم تربص', 'F');
+INSERT INTO MODELE_EVALUATION (NUM_MODELE, LIB_MODELE, LIB_MODELE_A, TYP_MODELE) VALUES ('05', 'Évaluation formation continue', 'تقييم تكوين مستمر', 'F');
+
+-- ============================================================================
+-- 39. LISTE_DIVERS : Éléments divers requis (permis, attestations)
+-- ADAPTED: Documents et compétences spécifiques secteur santé
+-- ============================================================================
+INSERT INTO LISTE_DIVERS (CODE_DIVERS, LIB_DIVERS, LIB_DIVERS_A) VALUES ('01', 'Permis de conduire', 'رخصة سياقة');
+INSERT INTO LISTE_DIVERS (CODE_DIVERS, LIB_DIVERS, LIB_DIVERS_A) VALUES ('02', 'Service national accompli', 'أداء الخدمة الوطنية');
+INSERT INTO LISTE_DIVERS (CODE_DIVERS, LIB_DIVERS, LIB_DIVERS_A) VALUES ('03', 'Inscription à l''Ordre des médecins', 'التسجيل بعمادة الأطباء');
+INSERT INTO LISTE_DIVERS (CODE_DIVERS, LIB_DIVERS, LIB_DIVERS_A) VALUES ('04', 'Inscription à l''Ordre des pharmaciens', 'التسجيل بعمادة الصيادلة');
+INSERT INTO LISTE_DIVERS (CODE_DIVERS, LIB_DIVERS, LIB_DIVERS_A) VALUES ('05', 'Attestation de stage hospitalier', 'شهادة تربص إستشفائي');
+INSERT INTO LISTE_DIVERS (CODE_DIVERS, LIB_DIVERS, LIB_DIVERS_A) VALUES ('06', 'Certificat de vaccination', 'شهادة تلقيح');
+INSERT INTO LISTE_DIVERS (CODE_DIVERS, LIB_DIVERS, LIB_DIVERS_A) VALUES ('07', 'Aptitude physique', 'لياقة بدنية');
+INSERT INTO LISTE_DIVERS (CODE_DIVERS, LIB_DIVERS, LIB_DIVERS_A) VALUES ('08', 'Maîtrise de l''informatique', 'إتقان الإعلامية');
+INSERT INTO LISTE_DIVERS (CODE_DIVERS, LIB_DIVERS, LIB_DIVERS_A) VALUES ('09', 'Diplôme de secourisme', 'شهادة إسعافات أولية');
+INSERT INTO LISTE_DIVERS (CODE_DIVERS, LIB_DIVERS, LIB_DIVERS_A) VALUES ('10', 'Expérience minimum 3 ans', 'خبرة لا تقل عن 3 سنوات');
+
+-- ============================================================================
+-- 40. VALEUR_CRITERE : Valeurs d'évaluation
+-- Source: données existantes dans la base GRH_BPC
+-- ============================================================================
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('01', 'Insuffisant', 'غير كاف');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('02', 'Moyen', 'متوسط');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('03', 'Bon', 'جيد');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('04', 'Excellent', 'ممتاز');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('05', 'Non', 'لا');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('06', 'Plutôt pas', 'ليس تماما');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('07', 'Plutôt bien', 'جيد نوعا ما');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('08', 'Oui', 'نعم');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('09', 'Satisfaisant', 'مرضي');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('10', 'En dessous de la moyenne', 'أقل من المتوسط');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('11', 'Pas tellement', 'ليس كثيرا');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('12', 'Pas du tout', 'أبدا');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('13', 'Oui, certainement', 'نعم بالتأكيد');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('14', 'Oui, partiellement', 'نعم جزئيا');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('15', 'Oui, c''était assez', 'نعم كان كافيا');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('16', 'C''était un peu court', 'كان قصيرا بعض الشيء');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('17', 'C''était un peu long', 'كان طويلا بعض الشيء');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('18', 'C''était beaucoup trop court', 'كان قصيرا جدا');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('19', 'C''était beaucoup trop long', 'كان طويلا جدا');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('20', 'Tout à fait', 'تماما');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('21', 'Partiellement', 'جزئيا');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('22', 'Oui, tout à fait', 'نعم تماما');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('23', 'J''aurais voulu plus', 'كنت أتمنى المزيد');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('24', 'Non, c''était insuffisant', 'لا كان غير كاف');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('25', 'C''était très bien', 'كان جيدا جدا');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('26', 'C''était satisfaisant', 'كان مرضيا');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('27', 'C''était insuffisant', 'كان غير كاف');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('28', 'Oui, très appropriée', 'نعم مناسبة جدا');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('29', 'Oui, assez appropriée', 'نعم مناسبة إلى حد ما');
+INSERT INTO VALEUR_CRITERE (COD_VAL, LIB_VAL, LIB_VAL_A) VALUES ('30', 'À revoir', 'يحتاج مراجعة');
+
+COMMIT;
+
 -- ============================================================================
 -- END OF REFERENCE DATA
 -- ============================================================================

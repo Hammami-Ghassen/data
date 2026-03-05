@@ -2722,6 +2722,1272 @@ COMMENT ON COLUMN CAL_PERS.REGIME_HEUR IS 'Régime horaire (37, 40, 48h)';
 COMMENT ON COLUMN CAL_PERS.DROIT_ASTR IS 'Droit à l''astreinte: I=instance, V=validée, N=non';
 COMMENT ON COLUMN CAL_PERS.SEANCE IS 'J=journée, M=matin, S=soir';
 
+-- ############################################################################
+-- PART 7 : MODULE RECRUTEMENT ET CONCOURS
+-- Tables de gestion du recrutement, concours, candidatures, évaluation
+-- et stages pour le Ministère de la Santé de Tunisie
+-- ############################################################################
+
+-- ============================================================================
+-- PART 7A : Tables de référence du recrutement
+-- ============================================================================
+
+-- ----------------------------------------------------------------------------
+-- 7A.1 VILLE : Villes de Tunisie (résidence des candidats)
+-- ADAPTED: Villes tunisiennes (Tunis, Sfax, Sousse, Kairouan, Bizerte...)
+-- ----------------------------------------------------------------------------
+CREATE TABLE VILLE (
+    CODE_VILLE       VARCHAR2(10)    NOT NULL,
+    LIB_VILLE        VARCHAR2(40),
+    LIB_VILLE_A      VARCHAR2(40),
+    CONSTRAINT PK_VILLE PRIMARY KEY (CODE_VILLE)
+);
+
+COMMENT ON TABLE VILLE IS 'Référentiel des villes tunisiennes pour les candidats';
+COMMENT ON COLUMN VILLE.CODE_VILLE IS 'Code ville';
+COMMENT ON COLUMN VILLE.LIB_VILLE IS 'Libellé ville en français';
+COMMENT ON COLUMN VILLE.LIB_VILLE_A IS 'Libellé ville en arabe';
+
+-- ----------------------------------------------------------------------------
+-- 7A.2 TYPE_BONIFICATION : Types de bonification aux concours
+-- ADAPTED: Bonifications secteur public tunisien (anciens combattants,
+-- fils de chahid/moujahid, handicapés, zones prioritaires)
+-- ----------------------------------------------------------------------------
+CREATE TABLE TYPE_BONIFICATION (
+    COD_MOTIF_BONIF      VARCHAR2(4)     NOT NULL,
+    LIB_MOTIF_BONIF      VARCHAR2(120),
+    LIB_MOTIF_BONIF_A    VARCHAR2(120),
+    TAUX                 NUMBER,
+    CONSTRAINT PK_TYPE_BONIFICATION PRIMARY KEY (COD_MOTIF_BONIF)
+);
+
+COMMENT ON TABLE TYPE_BONIFICATION IS 'Types de bonification applicables aux concours de la fonction publique';
+COMMENT ON COLUMN TYPE_BONIFICATION.COD_MOTIF_BONIF IS 'Code motif bonification';
+COMMENT ON COLUMN TYPE_BONIFICATION.LIB_MOTIF_BONIF IS 'Libellé motif bonification en français';
+COMMENT ON COLUMN TYPE_BONIFICATION.LIB_MOTIF_BONIF_A IS 'Libellé motif bonification en arabe';
+COMMENT ON COLUMN TYPE_BONIFICATION.TAUX IS 'Taux de bonification applicable';
+
+-- ----------------------------------------------------------------------------
+-- 7A.3 MODELE_EVALUATION : Modèles d''évaluation (recrutement et stage)
+-- ----------------------------------------------------------------------------
+CREATE TABLE MODELE_EVALUATION (
+    NUM_MODELE       VARCHAR2(10)    NOT NULL,
+    LIB_MODELE       VARCHAR2(40),
+    LIB_MODELE_A     VARCHAR2(40),
+    TYP_MODELE       VARCHAR2(1),
+    CONSTRAINT PK_MODELE_EVALUATION PRIMARY KEY (NUM_MODELE)
+);
+
+COMMENT ON TABLE MODELE_EVALUATION IS 'Modèles d''évaluation pour le recrutement et les stages';
+COMMENT ON COLUMN MODELE_EVALUATION.NUM_MODELE IS 'Code modèle d''évaluation';
+COMMENT ON COLUMN MODELE_EVALUATION.LIB_MODELE IS 'Libellé modèle en français';
+COMMENT ON COLUMN MODELE_EVALUATION.LIB_MODELE_A IS 'Libellé modèle en arabe';
+COMMENT ON COLUMN MODELE_EVALUATION.TYP_MODELE IS 'Type: R=recrutement, F=formation/stage';
+
+-- ----------------------------------------------------------------------------
+-- 7A.4 EPREUVE : Référentiel des épreuves de concours
+-- ADAPTED: Épreuves types secteur santé (culture générale, spécialité
+-- médicale, épreuve pratique soins, psychotechnique...)
+-- ----------------------------------------------------------------------------
+CREATE TABLE EPREUVE (
+    CODE_EPREUVE     VARCHAR2(10)    NOT NULL,
+    LIB_EPREUVE      VARCHAR2(40),
+    TYP_EPREUVE      VARCHAR2(1),
+    ABRV_EPREUVE     VARCHAR2(10),
+    LIB_EPREUVE_A    VARCHAR2(40),
+    CONSTRAINT PK_EPREUVE PRIMARY KEY (CODE_EPREUVE)
+);
+
+COMMENT ON TABLE EPREUVE IS 'Référentiel des épreuves de concours';
+COMMENT ON COLUMN EPREUVE.CODE_EPREUVE IS 'Code épreuve';
+COMMENT ON COLUMN EPREUVE.LIB_EPREUVE IS 'Libellé épreuve en français';
+COMMENT ON COLUMN EPREUVE.TYP_EPREUVE IS 'Type d''épreuve (non utilisé)';
+COMMENT ON COLUMN EPREUVE.ABRV_EPREUVE IS 'Abréviation (non utilisé)';
+COMMENT ON COLUMN EPREUVE.LIB_EPREUVE_A IS 'Libellé épreuve en arabe';
+
+-- ----------------------------------------------------------------------------
+-- 7A.5 SALLE : Salles d''examen dans les établissements de santé
+-- ADAPTED: Salles d''examen dans les hôpitaux, facultés de médecine,
+-- centres de formation en santé
+-- ----------------------------------------------------------------------------
+CREATE TABLE SALLE (
+    COD_SALLE        VARCHAR2(2)     NOT NULL,
+    LIB_SALLE        VARCHAR2(60)    NOT NULL,
+    CAPACITE         NUMBER,
+    LIB_SALLE_A      VARCHAR2(60),
+    COD_ETAB_CONC    VARCHAR2(4)     NOT NULL,
+    ID_SALLE         NUMBER,
+    CONSTRAINT PK_SALLE PRIMARY KEY (COD_ETAB_CONC, COD_SALLE)
+);
+
+COMMENT ON TABLE SALLE IS 'Salles d''examen pour les concours de recrutement';
+COMMENT ON COLUMN SALLE.COD_SALLE IS 'Code salle';
+COMMENT ON COLUMN SALLE.LIB_SALLE IS 'Libellé salle en français';
+COMMENT ON COLUMN SALLE.CAPACITE IS 'Capacité de la salle';
+COMMENT ON COLUMN SALLE.LIB_SALLE_A IS 'Libellé salle en arabe';
+COMMENT ON COLUMN SALLE.COD_ETAB_CONC IS 'Code établissement du concours';
+
+-- ----------------------------------------------------------------------------
+-- 7A.6 LISTE_DIVERS : Liste des pièces/documents/compétences diverses
+-- ADAPTED: Documents requis secteur santé (permis, certificats, attestations)
+-- ----------------------------------------------------------------------------
+CREATE TABLE LISTE_DIVERS (
+    CODE_DIVERS      VARCHAR2(10)    NOT NULL,
+    LIB_DIVERS       VARCHAR2(50),
+    LIB_DIVERS_A     VARCHAR2(50),
+    CONSTRAINT PK_LISTE_DIVERS PRIMARY KEY (CODE_DIVERS)
+);
+
+COMMENT ON TABLE LISTE_DIVERS IS 'Liste des éléments divers (permis, certificats, etc.)';
+COMMENT ON COLUMN LISTE_DIVERS.CODE_DIVERS IS 'Code divers';
+COMMENT ON COLUMN LISTE_DIVERS.LIB_DIVERS IS 'Libellé en français';
+COMMENT ON COLUMN LISTE_DIVERS.LIB_DIVERS_A IS 'Libellé en arabe';
+
+-- ----------------------------------------------------------------------------
+-- 7A.7 VALEUR_CRITERE : Valeurs possibles pour les critères d''évaluation
+-- ----------------------------------------------------------------------------
+CREATE TABLE VALEUR_CRITERE (
+    COD_VAL          VARCHAR2(4)     NOT NULL,
+    LIB_VAL          VARCHAR2(80),
+    LIB_VAL_A        VARCHAR2(80),
+    CONSTRAINT PK_VALEUR_CRITERE PRIMARY KEY (COD_VAL)
+);
+
+COMMENT ON TABLE VALEUR_CRITERE IS 'Valeurs possibles pour les critères d''évaluation';
+COMMENT ON COLUMN VALEUR_CRITERE.COD_VAL IS 'Code valeur';
+COMMENT ON COLUMN VALEUR_CRITERE.LIB_VAL IS 'Libellé valeur en français';
+COMMENT ON COLUMN VALEUR_CRITERE.LIB_VAL_A IS 'Libellé valeur en arabe';
+
+-- ============================================================================
+-- PART 7B : Tables principales du recrutement
+-- ============================================================================
+
+-- ----------------------------------------------------------------------------
+-- 7B.1 AVIS : Avis de recrutement / appels à candidatures
+-- ADAPTED: Avis publiés par le Ministère de la Santé au JORT
+-- et sur le site du ministère
+-- ----------------------------------------------------------------------------
+CREATE TABLE AVIS (
+    NUM_AVIS         VARCHAR2(6)     NOT NULL,
+    LIBELLE_AVIS     VARCHAR2(40),
+    DAT_AVIS         DATE,
+    DAT_LIMIT        DATE,
+    TYPE_AVIS        VARCHAR2(1),
+    SITE_INSCRIP     VARCHAR2(100),
+    ADR_CORRESP      VARCHAR2(300),
+    BUR_REGIONAL     VARCHAR2(100),
+    ETAT_AVIS        VARCHAR2(1),
+    SUJET_AVIS       VARCHAR2(300),
+    COD_SOC          VARCHAR2(4),
+    CONSTRAINT PK_AVIS PRIMARY KEY (NUM_AVIS)
+);
+
+COMMENT ON TABLE AVIS IS 'Avis de recrutement publiés par le Ministère de la Santé';
+COMMENT ON COLUMN AVIS.NUM_AVIS IS 'Numéro de l''avis de recrutement';
+COMMENT ON COLUMN AVIS.LIBELLE_AVIS IS 'Libellé de l''avis';
+COMMENT ON COLUMN AVIS.DAT_AVIS IS 'Date de saisie de l''avis';
+COMMENT ON COLUMN AVIS.DAT_LIMIT IS 'Date limite de dépôt des candidatures';
+COMMENT ON COLUMN AVIS.TYPE_AVIS IS 'Type d''avis (non utilisé)';
+COMMENT ON COLUMN AVIS.SITE_INSCRIP IS 'Site web pour inscription à distance';
+COMMENT ON COLUMN AVIS.ADR_CORRESP IS 'Adresse de correspondance';
+COMMENT ON COLUMN AVIS.BUR_REGIONAL IS 'Bureau régional d''emploi (ANETI)';
+COMMENT ON COLUMN AVIS.ETAT_AVIS IS 'État: I=instance, V=validé';
+COMMENT ON COLUMN AVIS.SUJET_AVIS IS 'Sujet de l''avis';
+
+-- ----------------------------------------------------------------------------
+-- 7B.2 LINE_AVIS : Lignes de l''avis (postes ouverts par spécialité)
+-- ADAPTED: Postes ouverts par établissement de santé et spécialité
+-- ----------------------------------------------------------------------------
+CREATE TABLE LINE_AVIS (
+    ORDR_AVIS        NUMBER          NOT NULL,
+    NUM_AVIS         VARCHAR2(6)     NOT NULL,
+    CODE_DOMAINE     VARCHAR2(10)    NOT NULL,
+    NOMBRE           NUMBER,
+    NBR_LOI          NUMBER,
+    AGE_MAX          NUMBER(2),
+    AGE_MIN          NUMBER(2),
+    COD_SOC          VARCHAR2(4),
+    ID_LINE_AVIS     NUMBER,
+    CONSTRAINT PK_LINE_AVIS PRIMARY KEY (NUM_AVIS, CODE_DOMAINE, ORDR_AVIS),
+    CONSTRAINT UN_LINE_AVIS UNIQUE (NUM_AVIS, CODE_DOMAINE),
+    CONSTRAINT FK_LINE_AVIS FOREIGN KEY (NUM_AVIS)
+        REFERENCES AVIS (NUM_AVIS)
+);
+
+COMMENT ON TABLE LINE_AVIS IS 'Lignes d''avis - postes ouverts par spécialité';
+COMMENT ON COLUMN LINE_AVIS.NUM_AVIS IS 'Numéro de l''avis';
+COMMENT ON COLUMN LINE_AVIS.ORDR_AVIS IS 'Ordre dans l''avis';
+COMMENT ON COLUMN LINE_AVIS.CODE_DOMAINE IS 'Spécialité / domaine';
+COMMENT ON COLUMN LINE_AVIS.NOMBRE IS 'Nombre de postes demandés';
+COMMENT ON COLUMN LINE_AVIS.NBR_LOI IS 'Nombre selon la loi cadre';
+COMMENT ON COLUMN LINE_AVIS.AGE_MAX IS 'Âge maximum permis';
+COMMENT ON COLUMN LINE_AVIS.AGE_MIN IS 'Âge minimum permis';
+
+-- ----------------------------------------------------------------------------
+-- 7B.3 CONCOURS : Concours de recrutement
+-- ADAPTED: Concours fonction publique santé (concours externe, interne,
+-- sur dossier, sur épreuves) selon décret n°2006-1031
+-- ----------------------------------------------------------------------------
+CREATE TABLE CONCOURS (
+    CODE_CONCOURS    VARCHAR2(10)    NOT NULL,
+    LIB_CONCOURS     VARCHAR2(40),
+    COD_ETAB_CONC    VARCHAR2(10),
+    DATE_CONCOURS    DATE,
+    TYPE_CONCOURS    VARCHAR2(1)     NOT NULL,
+    HEUR_C           DATE,
+    LIEU_C           VARCHAR2(60),
+    ETAT1            VARCHAR2(2),
+    MOY_CONCOURS     NUMBER(5,2),
+    NUM_AVIS         VARCHAR2(6)     NOT NULL,
+    ORDR_AVIS        NUMBER          NOT NULL,
+    CODE_DOMAINE     VARCHAR2(10)    NOT NULL,
+    TYPE_REUSSITE    VARCHAR2(1),
+    NAT_SELECT       VARCHAR2(1),
+    ETAT_CONC        VARCHAR2(1),
+    BONIFICATION     VARCHAR2(1),
+    CONC_COD_CONC    VARCHAR2(10),
+    COEF             NUMBER(2),
+    COD_CAT_CLASS    VARCHAR2(4),
+    COD_SOC          VARCHAR2(4),
+    CONSTRAINT PK_CONC PRIMARY KEY (CODE_CONCOURS),
+    CONSTRAINT FK_CONCOURS FOREIGN KEY (CODE_DOMAINE)
+        REFERENCES LISTE_DOMAINE (CODE_DOMAINE)
+);
+
+COMMENT ON TABLE CONCOURS IS 'Concours de recrutement - fonction publique santé';
+COMMENT ON COLUMN CONCOURS.CODE_CONCOURS IS 'Code du concours';
+COMMENT ON COLUMN CONCOURS.LIB_CONCOURS IS 'Libellé du concours';
+COMMENT ON COLUMN CONCOURS.COD_ETAB_CONC IS 'Lieu/établissement du concours';
+COMMENT ON COLUMN CONCOURS.DATE_CONCOURS IS 'Date début du concours';
+COMMENT ON COLUMN CONCOURS.TYPE_CONCOURS IS 'Type: E=écrit, O=oral, T=technique, P=psychotechnique, B=entretien';
+COMMENT ON COLUMN CONCOURS.HEUR_C IS 'Heure de début';
+COMMENT ON COLUMN CONCOURS.LIEU_C IS 'Lieu si plusieurs sites';
+COMMENT ON COLUMN CONCOURS.MOY_CONCOURS IS 'Moyenne d''admission';
+COMMENT ON COLUMN CONCOURS.NUM_AVIS IS 'N° avis de recrutement';
+COMMENT ON COLUMN CONCOURS.ORDR_AVIS IS 'Ordre dans l''avis';
+COMMENT ON COLUMN CONCOURS.CODE_DOMAINE IS 'Spécialité';
+COMMENT ON COLUMN CONCOURS.TYPE_REUSSITE IS 'M=par moyenne, N=par nombre, G=moyenne générale';
+COMMENT ON COLUMN CONCOURS.NAT_SELECT IS 'I=sélection intermédiaire, D=sélection définitive';
+COMMENT ON COLUMN CONCOURS.ETAT_CONC IS 'I=saisie, V=validé, C=clôturé';
+COMMENT ON COLUMN CONCOURS.BONIFICATION IS 'O=avec bonification, N=sans';
+COMMENT ON COLUMN CONCOURS.CONC_COD_CONC IS 'Code concours père (si existant)';
+COMMENT ON COLUMN CONCOURS.COEF IS 'Coefficient du concours';
+COMMENT ON COLUMN CONCOURS.COD_CAT_CLASS IS 'Catégorie de classe (ouvrier, cadre, cadre moyen...)';
+
+-- ----------------------------------------------------------------------------
+-- 7B.4 FICHE_CANDIDAT : Fiche complète du candidat
+-- ADAPTED: Candidats aux concours du Ministère de la Santé
+-- Inclut données CIN, service militaire, handicap, antécédents
+-- F_MOJHD_CHEHID: M=fils de moudjahid, C=fils de chahid (spécifique Tunisie)
+-- REMOVED FK: FK_MOYEN_CONVOC → MOTIF_CORRESPONDANCE (hors périmètre)
+-- ----------------------------------------------------------------------------
+CREATE TABLE FICHE_CANDIDAT (
+    NUM_FICHE            VARCHAR2(15)    NOT NULL,
+    COD_SOC              VARCHAR2(4),
+    MAT_PERS             VARCHAR2(10),
+    NOM_CAND             VARCHAR2(40),
+    PREN_CAND            VARCHAR2(40),
+    TYP_CAND             VARCHAR2(1),
+    NOM_JF               VARCHAR2(80),
+    DAT_NAIS             DATE,
+    LIEU_NAIS            VARCHAR2(200),
+    COD_NAT_P            VARCHAR2(4),
+    ADRESSE              VARCHAR2(100),
+    IDENTIFIANT          VARCHAR2(20),
+    TYP_IDENTIFIANT      VARCHAR2(1),
+    DAT_EMI_IDENT        DATE,
+    LIEU_EMI_IDENT       VARCHAR2(100),
+    NUM_PERMIS           VARCHAR2(10),
+    DAT_OBT_PERMIS       DATE,
+    SIT_FAM              VARCHAR2(1),
+    NBR_ENF              NUMBER,
+    PROF_CONJ            VARCHAR2(30),
+    ORG_PROF_CONJ        VARCHAR2(50),
+    TAILLE               NUMBER,
+    POIDS                NUMBER,
+    GRP_SANGUIN          VARCHAR2(3),
+    ETAT_SANTE           VARCHAR2(1),
+    HANDICAP             VARCHAR2(1)     DEFAULT NULL,
+    NOM_HANDICAP         VARCHAR2(100),
+    ANTECED_JUDICIAIRE   VARCHAR2(1),
+    DAT_ANTECED_JUD      DATE,
+    SERV_MILITAIRE       VARCHAR2(20),
+    ACTION_PREVUE        VARCHAR2(100),
+    DAT_CREAT_FICHE      DATE,
+    DAT_MAJ_FICHE        DATE,
+    ETAT_FICHE           VARCHAR2(1),
+    COD_SOURCE           VARCHAR2(6),
+    OBSERV               VARCHAR2(100),
+    COD_SALLE            VARCHAR2(2),
+    CODE_CONCOURS        VARCHAR2(10),
+    MOYEN_FINAL          NUMBER          DEFAULT NULL,
+    RESULT_FINAL         VARCHAR2(1),
+    CLASSEMENT           NUMBER(4)       DEFAULT NULL,
+    CODE_MOYEN           VARCHAR2(2),
+    DATE_CONVOCATION     DATE,
+    SEXE                 VARCHAR2(1),
+    NUM_FAM              NUMBER(2),
+    TELEPHONE            VARCHAR2(30),
+    FAX                  VARCHAR2(15),
+    E_MAIL               VARCHAR2(30),
+    CODE_VILLE           VARCHAR2(10),
+    COD_SERV             VARCHAR2(10),
+    VM                   VARCHAR2(1)     DEFAULT NULL,
+    DF                   VARCHAR2(1)     DEFAULT NULL,
+    PERE                 VARCHAR2(10),
+    ANC_MAT              VARCHAR2(10),
+    COD_MOTIF_BONIF      VARCHAR2(4),
+    COD_REFUS            VARCHAR2(10),
+    DAT_DEPOS_DEM        DATE,
+    NUM_CACHET           NUMBER,
+    ORG_SERV             VARCHAR2(15),
+    COD_METIER           VARCHAR2(4),
+    COD_POST             VARCHAR2(15),
+    COD_GOUV             VARCHAR2(2),
+    POURCENT_HAND        NUMBER(5,2),
+    TYP_HANDICAP         VARCHAR2(1),
+    NUM_FICH_HAND        VARCHAR2(10),
+    COEF_COMP            NUMBER(6),
+    COD_NAT_RECR         VARCHAR2(4),
+    COD_TYP_CONT         VARCHAR2(4),
+    REQUETE_ADM          VARCHAR2(1),
+    CASIER_JUD           VARCHAR2(1),
+    OBS_ENQUETE          VARCHAR2(500),
+    DAT_REQUETE          DATE,
+    COD_PROMO            VARCHAR2(4),
+    F_MOJHD_CHEHID       VARCHAR2(1),
+    ADM_TECH             VARCHAR2(10),
+    ADRESSE_A            VARCHAR2(100),
+    ID_FICHE_CANDIDAT    NUMBER,
+    NOM_CAND_A           VARCHAR2(40),
+    PREN_CAND_A          VARCHAR2(40),
+    CONSTRAINT PK_FICHE_CANDIDAT PRIMARY KEY (NUM_FICHE),
+    CONSTRAINT FK_FICHE_CAND_VILLE FOREIGN KEY (CODE_VILLE)
+        REFERENCES VILLE (CODE_VILLE),
+    CONSTRAINT FK_BONIFICATION FOREIGN KEY (COD_MOTIF_BONIF)
+        REFERENCES TYPE_BONIFICATION (COD_MOTIF_BONIF),
+    CONSTRAINT FK_NATIONALITE_CAND FOREIGN KEY (COD_NAT_P)
+        REFERENCES PAYS (COD_PAYS)
+);
+
+COMMENT ON TABLE FICHE_CANDIDAT IS 'Fiche candidat aux concours du Ministère de la Santé';
+COMMENT ON COLUMN FICHE_CANDIDAT.NUM_FICHE IS 'Numéro de fiche candidat';
+COMMENT ON COLUMN FICHE_CANDIDAT.COD_SOC IS 'Code structure sanitaire';
+COMMENT ON COLUMN FICHE_CANDIDAT.MAT_PERS IS 'Matricule personnel après recrutement';
+COMMENT ON COLUMN FICHE_CANDIDAT.NOM_CAND IS 'Nom du candidat';
+COMMENT ON COLUMN FICHE_CANDIDAT.PREN_CAND IS 'Prénom du candidat';
+COMMENT ON COLUMN FICHE_CANDIDAT.TYP_CAND IS 'E=externe, R=réintégration, D=sans concours, A=apprenti, P=parrainage, N=insertion professionnelle';
+COMMENT ON COLUMN FICHE_CANDIDAT.NOM_JF IS 'Nom de jeune fille';
+COMMENT ON COLUMN FICHE_CANDIDAT.DAT_NAIS IS 'Date de naissance';
+COMMENT ON COLUMN FICHE_CANDIDAT.LIEU_NAIS IS 'Lieu de naissance';
+COMMENT ON COLUMN FICHE_CANDIDAT.COD_NAT_P IS 'Code nationalité';
+COMMENT ON COLUMN FICHE_CANDIDAT.ADRESSE IS 'Adresse du candidat';
+COMMENT ON COLUMN FICHE_CANDIDAT.IDENTIFIANT IS 'CIN, N° carte séjour ou N° passeport';
+COMMENT ON COLUMN FICHE_CANDIDAT.TYP_IDENTIFIANT IS 'Type d''identifiant (CIN, carte séjour, passeport)';
+COMMENT ON COLUMN FICHE_CANDIDAT.DAT_EMI_IDENT IS 'Date d''émission de l''identifiant';
+COMMENT ON COLUMN FICHE_CANDIDAT.LIEU_EMI_IDENT IS 'Lieu d''émission de l''identifiant';
+COMMENT ON COLUMN FICHE_CANDIDAT.SIT_FAM IS 'Situation familiale';
+COMMENT ON COLUMN FICHE_CANDIDAT.NBR_ENF IS 'Nombre d''enfants';
+COMMENT ON COLUMN FICHE_CANDIDAT.GRP_SANGUIN IS 'Groupe sanguin';
+COMMENT ON COLUMN FICHE_CANDIDAT.ETAT_SANTE IS 'État de santé';
+COMMENT ON COLUMN FICHE_CANDIDAT.HANDICAP IS '0=non handicapé, 1=handicap normal, 2=handicap prioritaire, 3=avec accompagnement';
+COMMENT ON COLUMN FICHE_CANDIDAT.ANTECED_JUDICIAIRE IS 'Antécédent judiciaire';
+COMMENT ON COLUMN FICHE_CANDIDAT.SERV_MILITAIRE IS 'Service militaire national';
+COMMENT ON COLUMN FICHE_CANDIDAT.ACTION_PREVUE IS 'Action prévue pour le service militaire';
+COMMENT ON COLUMN FICHE_CANDIDAT.DAT_CREAT_FICHE IS 'Date de création de la fiche';
+COMMENT ON COLUMN FICHE_CANDIDAT.DAT_MAJ_FICHE IS 'Date dernière mise à jour';
+COMMENT ON COLUMN FICHE_CANDIDAT.ETAT_FICHE IS '1=saisie, 2=validé, 3=sélectionné, 4=rejeté, 5=convoqué, 6=admis, 7=refusé, 8=retenu, 9=recruté';
+COMMENT ON COLUMN FICHE_CANDIDAT.CODE_CONCOURS IS 'Code concours';
+COMMENT ON COLUMN FICHE_CANDIDAT.MOYEN_FINAL IS 'Moyenne finale du concours';
+COMMENT ON COLUMN FICHE_CANDIDAT.RESULT_FINAL IS 'A=admis, R=non admis';
+COMMENT ON COLUMN FICHE_CANDIDAT.CLASSEMENT IS 'Classement du candidat';
+COMMENT ON COLUMN FICHE_CANDIDAT.CODE_MOYEN IS 'Moyen de convocation (poste, téléphone...)';
+COMMENT ON COLUMN FICHE_CANDIDAT.SEXE IS 'Sexe du candidat';
+COMMENT ON COLUMN FICHE_CANDIDAT.CODE_VILLE IS 'Ville de résidence du candidat';
+COMMENT ON COLUMN FICHE_CANDIDAT.COD_MOTIF_BONIF IS 'Type de bonification si applicable';
+COMMENT ON COLUMN FICHE_CANDIDAT.COD_REFUS IS 'Code de refus pour demandes rejetées';
+COMMENT ON COLUMN FICHE_CANDIDAT.COD_METIER IS 'Code regroupement emploi si retenu';
+COMMENT ON COLUMN FICHE_CANDIDAT.COD_POST IS 'Code emploi si retenu';
+COMMENT ON COLUMN FICHE_CANDIDAT.POURCENT_HAND IS 'Pourcentage de handicap';
+COMMENT ON COLUMN FICHE_CANDIDAT.TYP_HANDICAP IS '0=physique, 1=intellectuelle, 2=vision, 3=audition';
+COMMENT ON COLUMN FICHE_CANDIDAT.VM IS 'Visite médicale effectuée: O/N';
+COMMENT ON COLUMN FICHE_CANDIDAT.DF IS 'Documents complémentaires fournis: O/N';
+COMMENT ON COLUMN FICHE_CANDIDAT.REQUETE_ADM IS 'Requête administrative: F=favorable, D=défavorable';
+COMMENT ON COLUMN FICHE_CANDIDAT.CASIER_JUD IS 'Casier judiciaire: F=favorable, D=défavorable';
+COMMENT ON COLUMN FICHE_CANDIDAT.F_MOJHD_CHEHID IS 'M=fils de moudjahid, C=fils de chahid';
+COMMENT ON COLUMN FICHE_CANDIDAT.NOM_CAND_A IS 'Nom candidat en arabe';
+COMMENT ON COLUMN FICHE_CANDIDAT.PREN_CAND_A IS 'Prénom candidat en arabe';
+COMMENT ON COLUMN FICHE_CANDIDAT.ADRESSE_A IS 'Adresse en arabe';
+
+-- ----------------------------------------------------------------------------
+-- 7B.5 STAGE : Stages probatoires des agents recrutés
+-- ADAPTED: Stage probatoire fonction publique tunisienne (1 an titulaire,
+-- 6 mois contractuel, prolongation possible)
+-- ----------------------------------------------------------------------------
+CREATE TABLE STAGE (
+    COD_SOC          VARCHAR2(4)     NOT NULL,
+    MAT_PERS         VARCHAR2(10)    NOT NULL,
+    DAT_DEBUT        DATE            NOT NULL,
+    PERIODE          NUMBER,
+    DAT_FIN          DATE            NOT NULL,
+    ETAT             VARCHAR2(1),
+    DAT_DEB_PROLG    DATE,
+    DAT_FIN_PROLG    DATE,
+    TYP_STAGE        VARCHAR2(1),
+    PERIODE_PROLG    NUMBER,
+    DAT_QUIT         DATE,
+    DAT_TIT          DATE,
+    TYP_DEPART       VARCHAR2(4),
+    NUM_RETR         VARCHAR2(10),
+    DAT_MEMOIR       DATE,
+    DAT_REM_MEM      DATE,
+    SUJET_MEM        VARCHAR2(300),
+    ENCADREUR        VARCHAR2(100),
+    OBJET_STAGE      VARCHAR2(300),
+    RESULT_STAGE     VARCHAR2(1),
+    COD_ALERT        VARCHAR2(4),
+    SEQ_ALERT        NUMBER(10),
+    ID_STAGE         NUMBER,
+    DAT_DECISION     DATE,
+    NUM_DECISION     VARCHAR2(20),
+    CONSTRAINT PK_STAGE PRIMARY KEY (COD_SOC, MAT_PERS, DAT_DEBUT),
+    CONSTRAINT FK_STAGE_PERSONNEL FOREIGN KEY (COD_SOC, MAT_PERS)
+        REFERENCES PERSONNEL (COD_SOC, MAT_PERS)
+);
+
+COMMENT ON TABLE STAGE IS 'Stages probatoires des agents recrutés dans la fonction publique santé';
+COMMENT ON COLUMN STAGE.COD_SOC IS 'Code structure sanitaire';
+COMMENT ON COLUMN STAGE.MAT_PERS IS 'Matricule personnel (stagiaire)';
+COMMENT ON COLUMN STAGE.DAT_DEBUT IS 'Date début du stage';
+COMMENT ON COLUMN STAGE.PERIODE IS 'Période de stage en mois';
+COMMENT ON COLUMN STAGE.DAT_FIN IS 'Date fin du stage';
+COMMENT ON COLUMN STAGE.ETAT IS 'E=instance, V=titularisation, P=prolongé, F=fin de stage';
+COMMENT ON COLUMN STAGE.DAT_DEB_PROLG IS 'Date début prolongation';
+COMMENT ON COLUMN STAGE.DAT_FIN_PROLG IS 'Date fin prolongation';
+COMMENT ON COLUMN STAGE.TYP_STAGE IS 'Stage première fois ou prolongation';
+COMMENT ON COLUMN STAGE.PERIODE_PROLG IS 'Période de prolongation en mois';
+COMMENT ON COLUMN STAGE.DAT_QUIT IS 'Date de départ si stage non concluant';
+COMMENT ON COLUMN STAGE.DAT_TIT IS 'Date de titularisation si stage concluant';
+COMMENT ON COLUMN STAGE.TYP_DEPART IS 'Motif de départ par défaut';
+COMMENT ON COLUMN STAGE.NUM_RETR IS 'Numéro CNSS/CNRPS';
+COMMENT ON COLUMN STAGE.DAT_MEMOIR IS 'Date de l''exposition du mémoire';
+COMMENT ON COLUMN STAGE.DAT_REM_MEM IS 'Date de dépôt du mémoire';
+COMMENT ON COLUMN STAGE.SUJET_MEM IS 'Sujet du mémoire';
+COMMENT ON COLUMN STAGE.ENCADREUR IS 'Nom et prénom de l''encadreur';
+COMMENT ON COLUMN STAGE.OBJET_STAGE IS 'Objectif attendu du stage';
+COMMENT ON COLUMN STAGE.RESULT_STAGE IS 'Résultat du stage';
+COMMENT ON COLUMN STAGE.DAT_DECISION IS 'Date de la décision';
+COMMENT ON COLUMN STAGE.NUM_DECISION IS 'Numéro de la décision';
+
+-- ----------------------------------------------------------------------------
+-- 7B.6 DETAIL_CONTRAT : Détails / avenants des contrats
+-- FK vers CONTRAT (PART 4)
+-- ----------------------------------------------------------------------------
+CREATE TABLE DETAIL_CONTRAT (
+    COD_SOC          VARCHAR2(4)     NOT NULL,
+    MAT_PERS         VARCHAR2(10)    NOT NULL,
+    NUM_CONTRAT      NUMBER          NOT NULL,
+    DAT_DEBUT        DATE            NOT NULL,
+    DAT_FIN          DATE,
+    SALAIRE          NUMBER(12,3),
+    COD_STAT         VARCHAR2(4),
+    ID_DETAIL_CONTRAT NUMBER,
+    CONSTRAINT PK_DETAIL_CONTRAT PRIMARY KEY (COD_SOC, MAT_PERS, NUM_CONTRAT, DAT_DEBUT),
+    CONSTRAINT FK_DETAIL_CONT_CONTRAT FOREIGN KEY (COD_SOC, MAT_PERS, NUM_CONTRAT)
+        REFERENCES CONTRAT (COD_SOC, MAT_PERS, NUM_CONTRAT)
+);
+
+COMMENT ON TABLE DETAIL_CONTRAT IS 'Détails et avenants des contrats de recrutement';
+COMMENT ON COLUMN DETAIL_CONTRAT.DAT_DEBUT IS 'Date début de la période';
+COMMENT ON COLUMN DETAIL_CONTRAT.DAT_FIN IS 'Date fin de la période';
+COMMENT ON COLUMN DETAIL_CONTRAT.SALAIRE IS 'Montant mensuel octroyé pendant la période';
+
+-- ----------------------------------------------------------------------------
+-- 7B.7 PERSONNEL_RECRUT : Données pré-recrutement du personnel
+-- ADAPTED: Table miroir de PERSONNEL pour préparer le recrutement
+-- avant validation définitive et création dans PERSONNEL
+-- ----------------------------------------------------------------------------
+CREATE TABLE PERSONNEL_RECRUT (
+    COD_SOC              VARCHAR2(4)     NOT NULL,
+    MAT_PERS             VARCHAR2(10)    NOT NULL,
+    COD_SERV             VARCHAR2(10),
+    COD_FONCT            VARCHAR2(4),
+    COD_CATEG            VARCHAR2(4),
+    COD_CAT              VARCHAR2(4),
+    COD_GRAD             VARCHAR2(4),
+    COD_MOTIF            VARCHAR2(4),
+    COD_NATP             VARCHAR2(4),
+    COD_STAT             VARCHAR2(4),
+    NOM_PERS             VARCHAR2(40),
+    PREN_PERS            VARCHAR2(40),
+    CIN                  VARCHAR2(20),
+    SEXE                 VARCHAR2(1),
+    DAT_SERV             DATE,
+    DAT_FONCT            DATE,
+    DAT_QUALF            DATE,
+    DAT_CATEG            DATE,
+    DAT_CAT              DATE,
+    DAT_GRAD             DATE,
+    DAT_ECH              DATE,
+    DAT_EMB              DATE,
+    DAT_ENT              DATE,
+    DAT_TIT              DATE,
+    DAT_MOTIF            DATE,
+    DAT_NAIS             DATE,
+    ETAT_ACT             VARCHAR2(1),
+    PER_MAT_PERS         VARCHAR2(10),
+    QUALF                VARCHAR2(4),
+    COD_SIT              VARCHAR2(1),
+    DAT_SIT              DATE,
+    CHEF_FAM             VARCHAR2(1),
+    NBRE_ENF             NUMBER(2),
+    CHARG_ENF            VARCHAR2(4),
+    CHARG_ALL            VARCHAR2(4),
+    FCT_FAM              VARCHAR2(1),
+    COD_ECH              NUMBER(2),
+    COD_AFFECT           VARCHAR2(4),
+    COD_NIVEAU           VARCHAR2(5),
+    NOM_JF               VARCHAR2(80),
+    NOM_PERS_A           VARCHAR2(60),
+    PREN_PERS_A          VARCHAR2(60),
+    POSTE_TRAV           VARCHAR2(15),
+    COD_METIER           VARCHAR2(4),
+    COD_USER             VARCHAR2(10),
+    DAT_MAJ              DATE,
+    ADM_TECH             VARCHAR2(10),
+    DAT_STAT             DATE,
+    DAT_CIN              DATE,
+    LIE_EMI_CIN          VARCHAR2(100),
+    DAT_AFFECT           DATE,
+    LIEU_NAIS            VARCHAR2(200),
+    COD_LIEU_GEOG        VARCHAR2(10),
+    DAT_LIEU_GEOG        DATE,
+    GRP_SANG             VARCHAR2(3),
+    NUM_RETR             VARCHAR2(12),
+    COD_FIL              VARCHAR2(4),
+    DAT_FIL              DATE,
+    SERV_MIL             VARCHAR2(2),
+    CODE_DOMAINE         VARCHAR2(10),
+    COD_UR               VARCHAR2(10),
+    COD_CLASS            VARCHAR2(4),
+    DAT_CLASS            DATE,
+    COD_TYP_DEPART       VARCHAR2(4),
+    DAT_DEPART           DATE,
+    DAT_UR               DATE,
+    ORG_SERV             VARCHAR2(15),
+    DAT_POSTE_TRAV       DATE,
+    COD_NAT_RECR         VARCHAR2(4),
+    DAT_ADM_TECH         DATE,
+    DAT_ORG_SERV         DATE,
+    NOM_JF_A             VARCHAR2(40),
+    COD_CAT_CLASS        VARCHAR2(4),
+    MAINTIEN_PERS        VARCHAR2(1),
+    MAINTIEN_DATE        DATE,
+    TYP_RANG             VARCHAR2(1),
+    HANDICAP             VARCHAR2(1),
+    POURCENT_HAND        NUMBER(5,2),
+    TYP_HANDICAP         VARCHAR2(1),
+    NUM_FICH_HAND        VARCHAR2(10),
+    NIV_SAL              NUMBER(4),
+    COD_ASSUR            VARCHAR2(4),
+    NUM_ASSUR            VARCHAR2(10),
+    COD_RETR             VARCHAR2(5),
+    TYP_ID               VARCHAR2(1),
+    ETAT_SANTE           VARCHAR2(1),
+    DAT_EFF_FICH_HAND    DATE,
+    DAT_FIN_FICH_HAND    DATE,
+    REF_FONCT            VARCHAR2(20),
+    NAT_TEXTE_FONCT      VARCHAR2(2),
+    NOUV_DAT_ECH         DATE,
+    DAT_NIV_SAL          DATE,
+    DAT_ASS              DATE,
+    DAT_AFF_CNAM         DATE,
+    ETAT_POSTE_TRAV      VARCHAR2(1),
+    ETAT                 VARCHAR2(1),
+    COD_TYP_CONT         VARCHAR2(4),
+    COD_BANQ             VARCHAR2(4),
+    COD_AGC              VARCHAR2(5),
+    CPT_BANQ_PERS        VARCHAR2(25),
+    ID_PERSONNEL_RECRUT  NUMBER,
+    NUM_DECIS            VARCHAR2(20),
+    DAT_DECIS            DATE,
+    CONSTRAINT PK_PERSONNEL_REC PRIMARY KEY (COD_SOC, MAT_PERS)
+);
+
+COMMENT ON TABLE PERSONNEL_RECRUT IS 'Données pré-recrutement avant validation et création dans PERSONNEL';
+COMMENT ON COLUMN PERSONNEL_RECRUT.COD_SOC IS 'Code structure sanitaire';
+COMMENT ON COLUMN PERSONNEL_RECRUT.MAT_PERS IS 'Matricule personnel';
+COMMENT ON COLUMN PERSONNEL_RECRUT.NOM_PERS IS 'Nom de l''agent';
+COMMENT ON COLUMN PERSONNEL_RECRUT.PREN_PERS IS 'Prénom de l''agent';
+COMMENT ON COLUMN PERSONNEL_RECRUT.NOM_PERS_A IS 'Nom en arabe';
+COMMENT ON COLUMN PERSONNEL_RECRUT.PREN_PERS_A IS 'Prénom en arabe';
+COMMENT ON COLUMN PERSONNEL_RECRUT.ETAT IS 'I=instance, V=validé (personnel créé)';
+COMMENT ON COLUMN PERSONNEL_RECRUT.NUM_RETR IS 'Numéro CNRPS/CNSS';
+COMMENT ON COLUMN PERSONNEL_RECRUT.COD_NAT_RECR IS 'Nature de recrutement';
+COMMENT ON COLUMN PERSONNEL_RECRUT.NUM_DECIS IS 'Numéro de la décision de recrutement';
+COMMENT ON COLUMN PERSONNEL_RECRUT.DAT_DECIS IS 'Date de la décision de recrutement';
+
+-- ============================================================================
+-- PART 7C : Tables détails de l''avis de recrutement
+-- ============================================================================
+
+-- ----------------------------------------------------------------------------
+-- 7C.1 DIPLOME_AVIS : Diplômes requis par avis
+-- ADAPTED: Diplômes exigés (infirmier, sage-femme, médecin, pharmacien...)
+-- ----------------------------------------------------------------------------
+CREATE TABLE DIPLOME_AVIS (
+    NUM_AVIS         VARCHAR2(6)     NOT NULL,
+    ORDR_AVIS        NUMBER          NOT NULL,
+    CODE_DOMAINE     VARCHAR2(10)    NOT NULL,
+    COD_NIVEAU       VARCHAR2(5)     NOT NULL,
+    CODE_OPTION      VARCHAR2(10),
+    COD_ETAB         VARCHAR2(15),
+    DATE_OBT         DATE,
+    ETAT             VARCHAR2(1),
+    OBLIG            VARCHAR2(1),
+    ID_DIPLOME_AVIS  NUMBER,
+    CONSTRAINT PK_DIPLOME_AVIS PRIMARY KEY (NUM_AVIS, ORDR_AVIS, CODE_DOMAINE, COD_NIVEAU),
+    CONSTRAINT FK_DIPLOM_DIP FOREIGN KEY (COD_NIVEAU)
+        REFERENCES PARAM_NIVEAU (COD_NIVEAU),
+    CONSTRAINT FK_DIPLOME_AVIS FOREIGN KEY (NUM_AVIS)
+        REFERENCES AVIS (NUM_AVIS)
+);
+
+COMMENT ON TABLE DIPLOME_AVIS IS 'Diplômes requis par ligne d''avis';
+COMMENT ON COLUMN DIPLOME_AVIS.COD_NIVEAU IS 'Code diplôme requis';
+COMMENT ON COLUMN DIPLOME_AVIS.CODE_DOMAINE IS 'Spécialité';
+COMMENT ON COLUMN DIPLOME_AVIS.OBLIG IS 'Obligatoire ou non';
+COMMENT ON COLUMN DIPLOME_AVIS.DATE_OBT IS 'Date d''obtention requise';
+
+-- ----------------------------------------------------------------------------
+-- 7C.2 DIVERS_AVIS : Éléments divers requis par avis (permis, certificats)
+-- ----------------------------------------------------------------------------
+CREATE TABLE DIVERS_AVIS (
+    NUM_AVIS         VARCHAR2(6)     NOT NULL,
+    ORDR_AVIS        NUMBER          NOT NULL,
+    CODE_DOMAINE     VARCHAR2(10)    NOT NULL,
+    CODE_DIVERS      VARCHAR2(10)    NOT NULL,
+    OBSERVATION      VARCHAR2(30),
+    ETAT             VARCHAR2(1),
+    NBR_DIVERS_AVIS  NUMBER,
+    OBLIG            VARCHAR2(1),
+    COD_SOC          VARCHAR2(4),
+    ID_DIVERS_AVIS   NUMBER,
+    CONSTRAINT PK_DIVERS_AVIS PRIMARY KEY (NUM_AVIS, ORDR_AVIS, CODE_DOMAINE, CODE_DIVERS),
+    CONSTRAINT FK_DIVERS_AVIS FOREIGN KEY (NUM_AVIS)
+        REFERENCES AVIS (NUM_AVIS),
+    CONSTRAINT FK_DIVERS_DIVERS FOREIGN KEY (CODE_DIVERS)
+        REFERENCES LISTE_DIVERS (CODE_DIVERS)
+);
+
+COMMENT ON TABLE DIVERS_AVIS IS 'Éléments divers requis par avis (permis, certificats...)';
+COMMENT ON COLUMN DIVERS_AVIS.CODE_DIVERS IS 'Code élément divers';
+COMMENT ON COLUMN DIVERS_AVIS.OBLIG IS 'Obligatoire ou non';
+COMMENT ON COLUMN DIVERS_AVIS.OBSERVATION IS 'Observation complémentaire';
+
+-- ----------------------------------------------------------------------------
+-- 7C.3 FORM_AVIS : Formations requises par avis
+-- REMOVED FK: FK_FORMATION_FORMAT → FORMATION (hors périmètre)
+-- ----------------------------------------------------------------------------
+CREATE TABLE FORM_AVIS (
+    NUM_AVIS         VARCHAR2(6)     NOT NULL,
+    ORDR_AVIS        NUMBER          NOT NULL,
+    CODE_DOMAINE     VARCHAR2(10)    NOT NULL,
+    COD_FORM         VARCHAR2(10)    NOT NULL,
+    COD_ETAB         VARCHAR2(15),
+    DUREE            NUMBER,
+    TYP_DUREE        VARCHAR2(1),
+    ETAT             VARCHAR2(1),
+    OBLIG            VARCHAR2(1),
+    ID_FORM_AVIS     NUMBER,
+    CONSTRAINT PK_FORMATION_AVIS PRIMARY KEY (NUM_AVIS, ORDR_AVIS, CODE_DOMAINE, COD_FORM),
+    CONSTRAINT FK_FORMATION_AVIS FOREIGN KEY (NUM_AVIS)
+        REFERENCES AVIS (NUM_AVIS)
+);
+
+COMMENT ON TABLE FORM_AVIS IS 'Formations requises par avis de recrutement';
+COMMENT ON COLUMN FORM_AVIS.COD_FORM IS 'Code formation requise';
+COMMENT ON COLUMN FORM_AVIS.DUREE IS 'Durée de la formation';
+COMMENT ON COLUMN FORM_AVIS.TYP_DUREE IS 'Unité: J=jour, M=mois, A=année';
+COMMENT ON COLUMN FORM_AVIS.OBLIG IS 'Obligatoire ou non';
+
+-- ----------------------------------------------------------------------------
+-- 7C.4 DOCUMENT_AVIS : Documents à fournir par ligne d''avis
+-- ADAPTED: Documents secteur santé (diplôme médical, aptitude physique,
+-- certificat de vaccination, inscription à l''ordre professionnel...)
+-- ----------------------------------------------------------------------------
+CREATE TABLE DOCUMENT_AVIS (
+    ORDR_AVIS        NUMBER          NOT NULL,
+    NUM_AVIS         VARCHAR2(6)     NOT NULL,
+    CODE_DOMAINE     VARCHAR2(10)    NOT NULL,
+    COD_DOC          VARCHAR2(10)    NOT NULL,
+    NBR              NUMBER,
+    OBLIG            VARCHAR2(1),
+    COD_SOC          VARCHAR2(4),
+    ID_DOCUMENT_AVIS NUMBER,
+    CONSTRAINT PK_DOCUMENT_AVIS PRIMARY KEY (ORDR_AVIS, NUM_AVIS, CODE_DOMAINE, COD_DOC),
+    CONSTRAINT FK_DOCUMENT_AVIS FOREIGN KEY (NUM_AVIS, CODE_DOMAINE, ORDR_AVIS)
+        REFERENCES LINE_AVIS (NUM_AVIS, CODE_DOMAINE, ORDR_AVIS)
+);
+
+COMMENT ON TABLE DOCUMENT_AVIS IS 'Documents à fournir par les candidats pour l''avis';
+COMMENT ON COLUMN DOCUMENT_AVIS.COD_DOC IS 'Code du document';
+COMMENT ON COLUMN DOCUMENT_AVIS.NBR IS 'Nombre de copies requises';
+COMMENT ON COLUMN DOCUMENT_AVIS.OBLIG IS 'Obligatoire ou non';
+
+-- ----------------------------------------------------------------------------
+-- 7C.5 DET_LINE_AVIS : Détail des postes par ligne d''avis
+-- Ventilation par métier et poste de travail
+-- ----------------------------------------------------------------------------
+CREATE TABLE DET_LINE_AVIS (
+    ORDR_AVIS        NUMBER          NOT NULL,
+    NUM_AVIS         VARCHAR2(6)     NOT NULL,
+    CODE_DOMAINE     VARCHAR2(10)    NOT NULL,
+    COD_METIER       VARCHAR2(4)     NOT NULL,
+    COD_POST         VARCHAR2(15)    NOT NULL,
+    NOMBRE           NUMBER,
+    OBLIG            VARCHAR2(1),
+    ID_DET_LINE_AVIS NUMBER,
+    CONSTRAINT PK_DET_LINE_AVIS PRIMARY KEY (ORDR_AVIS, NUM_AVIS, CODE_DOMAINE, COD_METIER, COD_POST)
+);
+
+COMMENT ON TABLE DET_LINE_AVIS IS 'Détail des postes par ligne d''avis (ventilation métier/poste)';
+COMMENT ON COLUMN DET_LINE_AVIS.COD_METIER IS 'Code métier';
+COMMENT ON COLUMN DET_LINE_AVIS.COD_POST IS 'Code poste de travail';
+COMMENT ON COLUMN DET_LINE_AVIS.NOMBRE IS 'Nombre de postes';
+COMMENT ON COLUMN DET_LINE_AVIS.OBLIG IS 'O=oui, N=non';
+
+-- ============================================================================
+-- PART 7D : Tables concours et épreuves
+-- ============================================================================
+
+-- ----------------------------------------------------------------------------
+-- 7D.1 LINE_CONCOURS : Épreuves d''un concours
+-- REMOVED FK: FK_LANGUE_CONC → LANGUE (hors périmètre)
+-- ----------------------------------------------------------------------------
+CREATE TABLE LINE_CONCOURS (
+    CODE_EPREUVE     VARCHAR2(10)    NOT NULL,
+    CODE_CONCOURS    VARCHAR2(10)    NOT NULL,
+    COEF             NUMBER(4,2),
+    NOT_ELIM         NUMBER(4,2),
+    CODE_LANGUE      VARCHAR2(10),
+    DUREE            NUMBER,
+    SPECIAL          VARCHAR2(1),
+    DAT_EPREUVE      DATE,
+    HEUR_DEB_EPREUVE NUMBER(2),
+    MIN_DEB_EPREUVE  NUMBER(2),
+    HEUR_FIN_EPREUVE NUMBER(2),
+    MIN_FIN_EPREUVE  NUMBER(2),
+    NBR_NOTE         NUMBER,
+    COD_SOC          VARCHAR2(4),
+    ID_LINE_CONCOURS NUMBER,
+    CONSTRAINT PK_LINE_CONCOURS PRIMARY KEY (CODE_EPREUVE, CODE_CONCOURS),
+    CONSTRAINT FK_EPREUVE_CONC FOREIGN KEY (CODE_EPREUVE)
+        REFERENCES EPREUVE (CODE_EPREUVE),
+    CONSTRAINT FK_LINE_CONCOURS FOREIGN KEY (CODE_CONCOURS)
+        REFERENCES CONCOURS (CODE_CONCOURS)
+);
+
+COMMENT ON TABLE LINE_CONCOURS IS 'Épreuves composant un concours de recrutement';
+COMMENT ON COLUMN LINE_CONCOURS.CODE_EPREUVE IS 'Code de l''épreuve';
+COMMENT ON COLUMN LINE_CONCOURS.CODE_CONCOURS IS 'Code du concours';
+COMMENT ON COLUMN LINE_CONCOURS.COEF IS 'Coefficient de l''épreuve';
+COMMENT ON COLUMN LINE_CONCOURS.NOT_ELIM IS 'Note éliminatoire (non utilisé)';
+COMMENT ON COLUMN LINE_CONCOURS.CODE_LANGUE IS 'Langue de l''épreuve';
+COMMENT ON COLUMN LINE_CONCOURS.DUREE IS 'Durée de l''épreuve';
+COMMENT ON COLUMN LINE_CONCOURS.SPECIAL IS 'Épreuve dans la spécialité ou non';
+COMMENT ON COLUMN LINE_CONCOURS.DAT_EPREUVE IS 'Date de l''épreuve';
+COMMENT ON COLUMN LINE_CONCOURS.HEUR_DEB_EPREUVE IS 'Heure début';
+COMMENT ON COLUMN LINE_CONCOURS.MIN_DEB_EPREUVE IS 'Minute début';
+COMMENT ON COLUMN LINE_CONCOURS.HEUR_FIN_EPREUVE IS 'Heure fin';
+COMMENT ON COLUMN LINE_CONCOURS.MIN_FIN_EPREUVE IS 'Minute fin';
+COMMENT ON COLUMN LINE_CONCOURS.NBR_NOTE IS 'Nombre de notes par épreuve';
+
+-- ----------------------------------------------------------------------------
+-- 7D.2 SALLE_CONCOURS : Affectation des salles aux concours
+-- ----------------------------------------------------------------------------
+CREATE TABLE SALLE_CONCOURS (
+    CODE_CONCOURS    VARCHAR2(10)    NOT NULL,
+    COD_SALLE        VARCHAR2(2)     NOT NULL,
+    CAPACITE_REEL    NUMBER,
+    CAPACITE_CONC    NUMBER,
+    CODE_EPREUVE     VARCHAR2(10)    NOT NULL,
+    COD_ETAB_CONC    VARCHAR2(4)     NOT NULL,
+    VALIDE           VARCHAR2(1),
+    COD_SOC          VARCHAR2(4),
+    ID_SALLE_CONCOURS NUMBER,
+    CONSTRAINT PK_SALLE_CONCOURS PRIMARY KEY (CODE_CONCOURS, COD_ETAB_CONC, COD_SALLE, CODE_EPREUVE),
+    CONSTRAINT FK1_SALLE_CONCOURS FOREIGN KEY (COD_ETAB_CONC, COD_SALLE)
+        REFERENCES SALLE (COD_ETAB_CONC, COD_SALLE),
+    CONSTRAINT FK_SALLE_CONC_CONC FOREIGN KEY (CODE_CONCOURS)
+        REFERENCES CONCOURS (CODE_CONCOURS)
+);
+
+COMMENT ON TABLE SALLE_CONCOURS IS 'Affectation des salles d''examen aux concours';
+COMMENT ON COLUMN SALLE_CONCOURS.CODE_CONCOURS IS 'Code concours';
+COMMENT ON COLUMN SALLE_CONCOURS.COD_SALLE IS 'Code salle';
+COMMENT ON COLUMN SALLE_CONCOURS.CAPACITE_REEL IS 'Capacité réelle de la salle';
+COMMENT ON COLUMN SALLE_CONCOURS.CAPACITE_CONC IS 'Capacité selon le concours';
+COMMENT ON COLUMN SALLE_CONCOURS.CODE_EPREUVE IS 'Épreuve pour laquelle la salle est occupée';
+COMMENT ON COLUMN SALLE_CONCOURS.VALIDE IS 'S=saisie, V=validé';
+
+-- ============================================================================
+-- PART 7E : Tables détails candidat
+-- ============================================================================
+
+-- ----------------------------------------------------------------------------
+-- 7E.1 COMPETENCE_CANDIDAT : Compétences déclarées par le candidat
+-- REMOVED FK: FK_COMPET → COMPETENCE (hors périmètre)
+-- ----------------------------------------------------------------------------
+CREATE TABLE COMPETENCE_CANDIDAT (
+    NUM_FICHE        VARCHAR2(15)    NOT NULL,
+    COD_NAT_COMP     VARCHAR2(4)     NOT NULL,
+    COD_COMP         VARCHAR2(15)    NOT NULL,
+    ID_COMPETENCE_CANDIDAT NUMBER,
+    CONSTRAINT PK_COMP_CAND PRIMARY KEY (NUM_FICHE, COD_NAT_COMP, COD_COMP),
+    CONSTRAINT FK_COMP_CAND FOREIGN KEY (NUM_FICHE)
+        REFERENCES FICHE_CANDIDAT (NUM_FICHE)
+);
+
+COMMENT ON TABLE COMPETENCE_CANDIDAT IS 'Compétences déclarées par le candidat';
+COMMENT ON COLUMN COMPETENCE_CANDIDAT.NUM_FICHE IS 'Numéro de fiche candidat';
+COMMENT ON COLUMN COMPETENCE_CANDIDAT.COD_NAT_COMP IS 'Nature de la compétence';
+COMMENT ON COLUMN COMPETENCE_CANDIDAT.COD_COMP IS 'Code compétence';
+
+-- ----------------------------------------------------------------------------
+-- 7E.2 FORM_CAND : Formations du candidat
+-- REMOVED FK: FK_FORMATION → FORMATION (hors périmètre)
+-- ----------------------------------------------------------------------------
+CREATE TABLE FORM_CAND (
+    NUM_FICHE        VARCHAR2(15)    NOT NULL,
+    COD_FORM         VARCHAR2(10)    NOT NULL,
+    DUREE            NUMBER,
+    TYP_DUREE_FC     VARCHAR2(1),
+    COD_ETAB         VARCHAR2(15),
+    ID_FORM_CAND     NUMBER,
+    CONSTRAINT PK_FORM_CANDIDAT PRIMARY KEY (NUM_FICHE, COD_FORM),
+    CONSTRAINT FK_FORM_FICHE_CANDIDAT FOREIGN KEY (NUM_FICHE)
+        REFERENCES FICHE_CANDIDAT (NUM_FICHE)
+);
+
+COMMENT ON TABLE FORM_CAND IS 'Formations suivies par le candidat';
+COMMENT ON COLUMN FORM_CAND.NUM_FICHE IS 'Numéro de fiche candidat';
+COMMENT ON COLUMN FORM_CAND.COD_FORM IS 'Code formation';
+COMMENT ON COLUMN FORM_CAND.DUREE IS 'Durée de la formation';
+COMMENT ON COLUMN FORM_CAND.TYP_DUREE_FC IS 'Unité: J=jour, M=mois, A=année';
+COMMENT ON COLUMN FORM_CAND.COD_ETAB IS 'Organisme formateur';
+
+-- ----------------------------------------------------------------------------
+-- 7E.3 FAMILLE_CANDIDAT : Membres de la famille du candidat
+-- FK vers ACTIVITE_FAMILLE (PART 2) et FICHE_CANDIDAT
+-- CHECK constraints: SEXE in (M,F), PARENTE in (E,C,M,P,D,V)
+-- ----------------------------------------------------------------------------
+CREATE TABLE FAMILLE_CANDIDAT (
+    COD_SOC          VARCHAR2(4)     NOT NULL,
+    NUM_FICHE        VARCHAR2(15),
+    NUM_FAM          NUMBER(2)       NOT NULL,
+    COD_ACTIVITE     VARCHAR2(4),
+    SEXE             VARCHAR2(1),
+    NOM              VARCHAR2(60),
+    NOM_A            VARCHAR2(60),
+    PRENOM           VARCHAR2(35)    NOT NULL,
+    PRENOM_A         VARCHAR2(35),
+    PARENTE          VARCHAR2(1)     NOT NULL,
+    DAT_MAR          DATE,
+    NOM_JF           VARCHAR2(40),
+    DAT_NAISS        DATE,
+    DAT_DECE         DATE,
+    TYP_CIN          VARCHAR2(1),
+    CIN              VARCHAR2(20),
+    DAT_CIN          DATE,
+    NUM_MERE         NUMBER(2),
+    ID_FAMILLE       NUMBER,
+    COD_USER         VARCHAR2(10),
+    CONSTRAINT CK_FAM_CAND_SEXE CHECK (SEXE IN ('M','F')),
+    CONSTRAINT CK_FAM_CAND_PARENTE CHECK (PARENTE IN ('E','C','M','P','D','V')),
+    CONSTRAINT FAMILLE_CANDIDAT_PK PRIMARY KEY (COD_SOC, NUM_FICHE, NUM_FAM),
+    CONSTRAINT FK_FAM_CAND_ACTIVITE FOREIGN KEY (COD_ACTIVITE, PARENTE)
+        REFERENCES ACTIVITE_FAMILLE (COD_ACTIVITE, PARENTE_ACT),
+    CONSTRAINT FK_FAMILLE_FICHE_CAND FOREIGN KEY (NUM_FICHE)
+        REFERENCES FICHE_CANDIDAT (NUM_FICHE)
+);
+
+COMMENT ON TABLE FAMILLE_CANDIDAT IS 'Membres de la famille du candidat';
+COMMENT ON COLUMN FAMILLE_CANDIDAT.NUM_FAM IS '99=conjoint, 97=mère, 98=père, 1..80=enfants, 81=grand-père, 82=grand-mère';
+COMMENT ON COLUMN FAMILLE_CANDIDAT.PARENTE IS 'Lien: E=enfant, C=conjoint, M=mère, P=père, D=grand-mère, V=grand-père';
+COMMENT ON COLUMN FAMILLE_CANDIDAT.SEXE IS 'Sexe: M=masculin, F=féminin';
+COMMENT ON COLUMN FAMILLE_CANDIDAT.COD_ACTIVITE IS 'Activité du membre de la famille';
+COMMENT ON COLUMN FAMILLE_CANDIDAT.TYP_CIN IS '1=CIN, 2=passeport, 3=carte séjour';
+COMMENT ON COLUMN FAMILLE_CANDIDAT.DAT_MAR IS 'Date de mariage (pour le conjoint)';
+COMMENT ON COLUMN FAMILLE_CANDIDAT.NOM_JF IS 'Nom de jeune fille (pour le conjoint)';
+
+-- ----------------------------------------------------------------------------
+-- 7E.4 EXPERIENCE_CAND : Expériences professionnelles du candidat
+-- FK vers LISTE_DOMAINE (PART 1) et FICHE_CANDIDAT
+-- ----------------------------------------------------------------------------
+CREATE TABLE EXPERIENCE_CAND (
+    NUM_FICHE        VARCHAR2(15)    NOT NULL,
+    CODE_DOMAINE     VARCHAR2(10)    NOT NULL,
+    COD_ETAB         VARCHAR2(15),
+    DUREE_AVIS       NUMBER,
+    TYP_DUREE_FC     VARCHAR2(1),
+    COD_FONCT        VARCHAR2(4),
+    CONSTRAINT PK_EXPERIENCE_CAND PRIMARY KEY (NUM_FICHE, CODE_DOMAINE),
+    CONSTRAINT FK_DOMAINE_EXP FOREIGN KEY (CODE_DOMAINE)
+        REFERENCES LISTE_DOMAINE (CODE_DOMAINE),
+    CONSTRAINT FK_EXP_FICHE_CANDIDAT FOREIGN KEY (NUM_FICHE)
+        REFERENCES FICHE_CANDIDAT (NUM_FICHE)
+);
+
+COMMENT ON TABLE EXPERIENCE_CAND IS 'Expériences professionnelles du candidat';
+COMMENT ON COLUMN EXPERIENCE_CAND.NUM_FICHE IS 'Numéro de fiche candidat';
+COMMENT ON COLUMN EXPERIENCE_CAND.CODE_DOMAINE IS 'Domaine/spécialité de l''expérience';
+COMMENT ON COLUMN EXPERIENCE_CAND.COD_ETAB IS 'Établissement de l''expérience';
+COMMENT ON COLUMN EXPERIENCE_CAND.DUREE_AVIS IS 'Durée de l''expérience';
+COMMENT ON COLUMN EXPERIENCE_CAND.TYP_DUREE_FC IS 'Unité de durée';
+
+-- ----------------------------------------------------------------------------
+-- 7E.5 DOC_CAND : Documents fournis par le candidat
+-- ----------------------------------------------------------------------------
+CREATE TABLE DOC_CAND (
+    NUM_FICHE        VARCHAR2(15)    NOT NULL,
+    COD_DOC          VARCHAR2(10)    NOT NULL,
+    NBR              NUMBER,
+    DAT_DOC          DATE,
+    VALID            VARCHAR2(1),
+    COD_SOC          VARCHAR2(4),
+    ID_DOC_CAND      NUMBER,
+    CONSTRAINT PK_DOC_CANDIDAT PRIMARY KEY (NUM_FICHE, COD_DOC),
+    CONSTRAINT FK_DOC_FICHE_CANDIDAT FOREIGN KEY (NUM_FICHE)
+        REFERENCES FICHE_CANDIDAT (NUM_FICHE)
+);
+
+COMMENT ON TABLE DOC_CAND IS 'Documents fournis par le candidat';
+COMMENT ON COLUMN DOC_CAND.NUM_FICHE IS 'Numéro de fiche candidat';
+COMMENT ON COLUMN DOC_CAND.COD_DOC IS 'Code du document';
+COMMENT ON COLUMN DOC_CAND.NBR IS 'Nombre de copies fournies';
+COMMENT ON COLUMN DOC_CAND.DAT_DOC IS 'Date du document';
+COMMENT ON COLUMN DOC_CAND.VALID IS 'Document validé ou non';
+
+-- ----------------------------------------------------------------------------
+-- 7E.6 DET_FICHE_CANDIDAT : Résultats du candidat par concours
+-- Permet à un candidat de participer à plusieurs concours
+-- ----------------------------------------------------------------------------
+CREATE TABLE DET_FICHE_CANDIDAT (
+    NUM_FICHE        VARCHAR2(15)    NOT NULL,
+    CODE_CONCOURS    VARCHAR2(10)    NOT NULL,
+    ETAT_FICHE       VARCHAR2(1),
+    MOYEN_FINAL      NUMBER,
+    RESULT_FINAL     VARCHAR2(1),
+    CLASSEMENT       NUMBER(4),
+    CONSTRAINT PK_DET_FICHE_CANDIDAT PRIMARY KEY (NUM_FICHE, CODE_CONCOURS),
+    CONSTRAINT FK_DET_FICHE_CANDIDAT FOREIGN KEY (NUM_FICHE)
+        REFERENCES FICHE_CANDIDAT (NUM_FICHE)
+);
+
+COMMENT ON TABLE DET_FICHE_CANDIDAT IS 'Résultats du candidat ventilés par concours';
+COMMENT ON COLUMN DET_FICHE_CANDIDAT.NUM_FICHE IS 'Numéro de fiche candidat';
+COMMENT ON COLUMN DET_FICHE_CANDIDAT.CODE_CONCOURS IS 'Code concours';
+COMMENT ON COLUMN DET_FICHE_CANDIDAT.ETAT_FICHE IS 'État de la fiche pour ce concours';
+COMMENT ON COLUMN DET_FICHE_CANDIDAT.MOYEN_FINAL IS 'Moyenne finale obtenue';
+COMMENT ON COLUMN DET_FICHE_CANDIDAT.RESULT_FINAL IS 'A=admis, R=non admis';
+COMMENT ON COLUMN DET_FICHE_CANDIDAT.CLASSEMENT IS 'Classement du candidat';
+
+-- ----------------------------------------------------------------------------
+-- 7E.7 CAND_DIPLOM : Diplômes du candidat
+-- FK vers PARAM_NIVEAU (PART 1) et FICHE_CANDIDAT
+-- REMOVED FK: FK_CAND_DIP_OPTION → OPTION_DIPLOM (hors périmètre)
+-- ----------------------------------------------------------------------------
+CREATE TABLE CAND_DIPLOM (
+    NUM_FICHE        VARCHAR2(15)    NOT NULL,
+    COD_NIVEAU       VARCHAR2(5)     NOT NULL,
+    DAT_NIV          DATE,
+    CODE_DOMAINE     VARCHAR2(10),
+    CODE_OPTION      VARCHAR2(10),
+    COD_ETAB         VARCHAR2(15),
+    TYP_NIVEAU       VARCHAR2(1),
+    ID_CAND_DIPLOM   NUMBER,
+    CONSTRAINT PK_CAND_DIPLOME PRIMARY KEY (NUM_FICHE, COD_NIVEAU),
+    CONSTRAINT FK_CANDIDAT_NIVEAU FOREIGN KEY (COD_NIVEAU)
+        REFERENCES PARAM_NIVEAU (COD_NIVEAU),
+    CONSTRAINT FK_CAND_DIPLOM_CANDIDAT FOREIGN KEY (NUM_FICHE)
+        REFERENCES FICHE_CANDIDAT (NUM_FICHE)
+);
+
+COMMENT ON TABLE CAND_DIPLOM IS 'Diplômes obtenus par le candidat';
+COMMENT ON COLUMN CAND_DIPLOM.NUM_FICHE IS 'Numéro de fiche candidat';
+COMMENT ON COLUMN CAND_DIPLOM.COD_NIVEAU IS 'Code niveau/diplôme';
+COMMENT ON COLUMN CAND_DIPLOM.DAT_NIV IS 'Date d''obtention du diplôme';
+COMMENT ON COLUMN CAND_DIPLOM.CODE_DOMAINE IS 'Spécialité';
+COMMENT ON COLUMN CAND_DIPLOM.CODE_OPTION IS 'Option du diplôme (non utilisé)';
+COMMENT ON COLUMN CAND_DIPLOM.COD_ETAB IS 'Établissement d''études';
+COMMENT ON COLUMN CAND_DIPLOM.TYP_NIVEAU IS 'D=diplôme, N=niveau';
+
+-- ----------------------------------------------------------------------------
+-- 7E.8 DIVERS_CAND : Éléments divers du candidat (permis, etc.)
+-- FK vers LISTE_DIVERS et FICHE_CANDIDAT
+-- ----------------------------------------------------------------------------
+CREATE TABLE DIVERS_CAND (
+    CODE_DIVERS      VARCHAR2(10)    NOT NULL,
+    NUM_FICHE        VARCHAR2(15)    NOT NULL,
+    OBSERVATION      VARCHAR2(30),
+    OBSERVATION_A    VARCHAR2(30),
+    COD_SOC          VARCHAR2(4),
+    ID_DIVERS_CAND   NUMBER,
+    CONSTRAINT PK_DIVERS_CANDIDAT PRIMARY KEY (CODE_DIVERS, NUM_FICHE),
+    CONSTRAINT FK_DIVERS FOREIGN KEY (CODE_DIVERS)
+        REFERENCES LISTE_DIVERS (CODE_DIVERS),
+    CONSTRAINT FK_DIVERS_CANDIDAT FOREIGN KEY (NUM_FICHE)
+        REFERENCES FICHE_CANDIDAT (NUM_FICHE)
+);
+
+COMMENT ON TABLE DIVERS_CAND IS 'Éléments divers du candidat (permis, certificats...)';
+COMMENT ON COLUMN DIVERS_CAND.CODE_DIVERS IS 'Code élément divers (permis, etc.)';
+COMMENT ON COLUMN DIVERS_CAND.NUM_FICHE IS 'Numéro de fiche candidat';
+COMMENT ON COLUMN DIVERS_CAND.OBSERVATION IS 'Détails en français';
+COMMENT ON COLUMN DIVERS_CAND.OBSERVATION_A IS 'Détails en arabe';
+
+-- ============================================================================
+-- PART 7F : Tables évaluation, direction des besoins, évaluation de stage
+-- ============================================================================
+
+-- ----------------------------------------------------------------------------
+-- 7F.1 LIGNE_DIR : Lignes directrices des besoins en recrutement
+-- FK vers POSTE_TRAV (PART 2)
+-- REMOVED FK: FK_LIGNE_DIR_SOURCE_BESOIN → SOURCE_BESOIN (hors périmètre)
+-- ADAPTED: Expression des besoins par structure sanitaire
+-- ----------------------------------------------------------------------------
+CREATE TABLE LIGNE_DIR (
+    COD_SOC          VARCHAR2(4)     NOT NULL,
+    COD_SERV         VARCHAR2(10)    NOT NULL,
+    DAT_DIR          DATE            NOT NULL,
+    COD_AFF          VARCHAR2(10)    NOT NULL,
+    COD_METIER       VARCHAR2(4)     NOT NULL,
+    COD_POST         VARCHAR2(15)    NOT NULL,
+    COD_SOURCE       VARCHAR2(6),
+    NAT_CAND         VARCHAR2(1),
+    NIV_URGENCE      VARCHAR2(1),
+    AGE_MIN          NUMBER(2),
+    AGE_MAX          NUMBER(2),
+    NBRE_FEM         NUMBER,
+    NBRE_MASC        NUMBER,
+    NBRE_GEN         NUMBER,
+    VALID            VARCHAR2(1),
+    OBSERV           VARCHAR2(1000),
+    SERV_CIBLE       VARCHAR2(10),
+    ID_LIGNE_DIR     NUMBER,
+    CONSTRAINT PK_LIGNE_DIR PRIMARY KEY (COD_SOC, COD_AFF, COD_SERV, DAT_DIR, COD_METIER, COD_POST),
+    CONSTRAINT FK_LIGNE_DIR_POSTE FOREIGN KEY (COD_POST)
+        REFERENCES POSTE_TRAV (COD_POST)
+);
+
+COMMENT ON TABLE LIGNE_DIR IS 'Lignes directrices - expression des besoins en recrutement par structure';
+COMMENT ON COLUMN LIGNE_DIR.COD_SOC IS 'Code structure sanitaire';
+COMMENT ON COLUMN LIGNE_DIR.COD_SERV IS 'Service demandeur';
+COMMENT ON COLUMN LIGNE_DIR.DAT_DIR IS 'Date de la demande';
+COMMENT ON COLUMN LIGNE_DIR.COD_AFF IS 'Code affectation';
+COMMENT ON COLUMN LIGNE_DIR.COD_METIER IS 'Code métier demandé';
+COMMENT ON COLUMN LIGNE_DIR.COD_POST IS 'Poste de travail demandé';
+COMMENT ON COLUMN LIGNE_DIR.NAT_CAND IS 'Nature du candidat recherché';
+COMMENT ON COLUMN LIGNE_DIR.NIV_URGENCE IS 'Niveau d''urgence du besoin';
+COMMENT ON COLUMN LIGNE_DIR.NBRE_FEM IS 'Nombre requis - femmes';
+COMMENT ON COLUMN LIGNE_DIR.NBRE_MASC IS 'Nombre requis - hommes';
+COMMENT ON COLUMN LIGNE_DIR.NBRE_GEN IS 'Nombre requis - total';
+COMMENT ON COLUMN LIGNE_DIR.SERV_CIBLE IS 'Service cible d''affectation';
+
+-- ----------------------------------------------------------------------------
+-- 7F.2 DIPLOME_DIR : Diplômes requis par ligne directrice
+-- FK vers LIGNE_DIR et PARAM_NIVEAU (PART 1)
+-- ----------------------------------------------------------------------------
+CREATE TABLE DIPLOME_DIR (
+    COD_SOC          VARCHAR2(4)     NOT NULL,
+    COD_SERV         VARCHAR2(10)    NOT NULL,
+    DAT_DIR          DATE            NOT NULL,
+    COD_AFF          VARCHAR2(10)    NOT NULL,
+    COD_METIER       VARCHAR2(4)     NOT NULL,
+    COD_POST         VARCHAR2(15)    NOT NULL,
+    COD_NIVEAU       VARCHAR2(5)     NOT NULL,
+    CODE_OPTION      VARCHAR2(10),
+    COD_ETAB         VARCHAR2(15),
+    DATE_OBT         DATE,
+    ETAT             VARCHAR2(1),
+    OBLIG            VARCHAR2(1),
+    ID_DIPLOME_DIR   NUMBER,
+    CONSTRAINT PK_DIPLOME_DIR PRIMARY KEY (COD_SOC, COD_AFF, COD_SERV, DAT_DIR, COD_METIER, COD_POST, COD_NIVEAU),
+    CONSTRAINT FK_DIPLOME_DIR FOREIGN KEY (COD_SOC, COD_AFF, COD_SERV, DAT_DIR, COD_METIER, COD_POST)
+        REFERENCES LIGNE_DIR (COD_SOC, COD_AFF, COD_SERV, DAT_DIR, COD_METIER, COD_POST),
+    CONSTRAINT FK_DIPLOME_DIR_NIV FOREIGN KEY (COD_NIVEAU)
+        REFERENCES PARAM_NIVEAU (COD_NIVEAU)
+);
+
+COMMENT ON TABLE DIPLOME_DIR IS 'Diplômes requis par ligne directrice de besoin';
+COMMENT ON COLUMN DIPLOME_DIR.COD_NIVEAU IS 'Code diplôme requis';
+COMMENT ON COLUMN DIPLOME_DIR.OBLIG IS 'Obligatoire ou non';
+
+-- ----------------------------------------------------------------------------
+-- 7F.3 DIVERS_DIR : Éléments divers requis par ligne directrice
+-- FK vers LIGNE_DIR et LISTE_DIVERS
+-- ----------------------------------------------------------------------------
+CREATE TABLE DIVERS_DIR (
+    COD_SOC          VARCHAR2(4)     NOT NULL,
+    COD_SERV         VARCHAR2(10)    NOT NULL,
+    DAT_DIR          DATE            NOT NULL,
+    COD_AFF          VARCHAR2(10)    NOT NULL,
+    COD_METIER       VARCHAR2(4)     NOT NULL,
+    COD_POST         VARCHAR2(15)    NOT NULL,
+    CODE_DIVERS      VARCHAR2(10)    NOT NULL,
+    OBSERVATION      VARCHAR2(30),
+    ETAT             VARCHAR2(1),
+    NBR_DIVERS_AVIS  NUMBER,
+    OBLIG            VARCHAR2(1),
+    ID_DIVERS_DIR    NUMBER,
+    CONSTRAINT PK_DIVERS_DIR PRIMARY KEY (COD_SOC, COD_AFF, COD_SERV, DAT_DIR, COD_METIER, COD_POST, CODE_DIVERS),
+    CONSTRAINT FK_DIVERS_DIR FOREIGN KEY (COD_SOC, COD_AFF, COD_SERV, DAT_DIR, COD_METIER, COD_POST)
+        REFERENCES LIGNE_DIR (COD_SOC, COD_AFF, COD_SERV, DAT_DIR, COD_METIER, COD_POST),
+    CONSTRAINT FK_DIVERS1 FOREIGN KEY (CODE_DIVERS)
+        REFERENCES LISTE_DIVERS (CODE_DIVERS)
+);
+
+COMMENT ON TABLE DIVERS_DIR IS 'Éléments divers requis par ligne directrice';
+COMMENT ON COLUMN DIVERS_DIR.CODE_DIVERS IS 'Code élément divers';
+COMMENT ON COLUMN DIVERS_DIR.OBLIG IS 'Obligatoire ou non';
+
+-- ----------------------------------------------------------------------------
+-- 7F.4 FICHE_EVAL_RECRU : Fiche d''évaluation pour le recrutement
+-- FK vers CONCOURS, FICHE_CANDIDAT, MODELE_EVALUATION
+-- ----------------------------------------------------------------------------
+CREATE TABLE FICHE_EVAL_RECRU (
+    CODE_CONCOURS    VARCHAR2(10)    NOT NULL,
+    NUM_MODELE       VARCHAR2(10)    NOT NULL,
+    COD_SOC          VARCHAR2(4)     NOT NULL,
+    NUM_FICHE        VARCHAR2(15)    NOT NULL,
+    DAT_FICHE        DATE,
+    OBS              VARCHAR2(200),
+    AVIS             VARCHAR2(1),
+    DECISIONS        VARCHAR2(100),
+    RECOMMAND        VARCHAR2(100),
+    COD_AFFECT       VARCHAR2(4),
+    MAT_MEMBRE       VARCHAR2(10)    NOT NULL,
+    ID_FICHE_EVAL_RECRU NUMBER,
+    CONSTRAINT PK_EVAL_RECRU PRIMARY KEY (CODE_CONCOURS, NUM_MODELE, NUM_FICHE, COD_SOC, MAT_MEMBRE),
+    CONSTRAINT FK_EVAL_RECRU FOREIGN KEY (CODE_CONCOURS)
+        REFERENCES CONCOURS (CODE_CONCOURS),
+    CONSTRAINT FK2_EVAL_RECRU FOREIGN KEY (NUM_FICHE)
+        REFERENCES FICHE_CANDIDAT (NUM_FICHE),
+    CONSTRAINT FK3_EVAL_RECRU FOREIGN KEY (NUM_MODELE)
+        REFERENCES MODELE_EVALUATION (NUM_MODELE)
+);
+
+COMMENT ON TABLE FICHE_EVAL_RECRU IS 'Fiche d''évaluation du candidat lors du recrutement';
+COMMENT ON COLUMN FICHE_EVAL_RECRU.CODE_CONCOURS IS 'Code concours';
+COMMENT ON COLUMN FICHE_EVAL_RECRU.NUM_MODELE IS 'Modèle d''évaluation utilisé';
+COMMENT ON COLUMN FICHE_EVAL_RECRU.NUM_FICHE IS 'Numéro de fiche candidat';
+COMMENT ON COLUMN FICHE_EVAL_RECRU.DAT_FICHE IS 'Date de l''évaluation';
+COMMENT ON COLUMN FICHE_EVAL_RECRU.OBS IS 'Observations';
+COMMENT ON COLUMN FICHE_EVAL_RECRU.AVIS IS 'Avis du jury';
+COMMENT ON COLUMN FICHE_EVAL_RECRU.DECISIONS IS 'Décisions prises';
+COMMENT ON COLUMN FICHE_EVAL_RECRU.RECOMMAND IS 'Recommandations';
+COMMENT ON COLUMN FICHE_EVAL_RECRU.MAT_MEMBRE IS 'Matricule du membre du jury';
+
+-- ----------------------------------------------------------------------------
+-- 7F.5 DET_FICHE_EVAL_RECRU : Détails de l''évaluation de recrutement
+-- FK vers FICHE_EVAL_RECRU
+-- ----------------------------------------------------------------------------
+CREATE TABLE DET_FICHE_EVAL_RECRU (
+    NUM_FICHE            VARCHAR2(15)    NOT NULL,
+    DAT_FICHE            DATE,
+    COD_CRIT             VARCHAR2(4)     NOT NULL,
+    COD_VAL              VARCHAR2(4),
+    VALEUR               VARCHAR2(1),
+    COD_SOC              VARCHAR2(4)     NOT NULL,
+    CODE_CONCOURS        VARCHAR2(10)    NOT NULL,
+    NUM_MODELE           VARCHAR2(10)    NOT NULL,
+    OBSERVATIONS         VARCHAR2(200),
+    MAT_MEMBRE           VARCHAR2(10)    NOT NULL,
+    ID_DET_FICHE_EVAL_RECRU NUMBER,
+    CONSTRAINT PK_DET_EVAL_RECRU PRIMARY KEY (COD_SOC, CODE_CONCOURS, NUM_MODELE, NUM_FICHE, COD_CRIT, MAT_MEMBRE),
+    CONSTRAINT FK_DET_EVAL_RECRU FOREIGN KEY (CODE_CONCOURS, NUM_MODELE, NUM_FICHE, COD_SOC, MAT_MEMBRE)
+        REFERENCES FICHE_EVAL_RECRU (CODE_CONCOURS, NUM_MODELE, NUM_FICHE, COD_SOC, MAT_MEMBRE)
+);
+
+COMMENT ON TABLE DET_FICHE_EVAL_RECRU IS 'Détails de l''évaluation par critère';
+COMMENT ON COLUMN DET_FICHE_EVAL_RECRU.COD_CRIT IS 'Code critère d''évaluation';
+COMMENT ON COLUMN DET_FICHE_EVAL_RECRU.COD_VAL IS 'Valeur attribuée';
+COMMENT ON COLUMN DET_FICHE_EVAL_RECRU.VALEUR IS 'Note attribuée';
+COMMENT ON COLUMN DET_FICHE_EVAL_RECRU.OBSERVATIONS IS 'Observations du jury';
+
+-- ----------------------------------------------------------------------------
+-- 7F.6 FICHE_EVAL_STAGE : Fiche d''évaluation de stage
+-- FK vers STAGE et MODELE_EVALUATION
+-- ----------------------------------------------------------------------------
+CREATE TABLE FICHE_EVAL_STAGE (
+    COD_SOC          VARCHAR2(4)     NOT NULL,
+    MAT_PERS         VARCHAR2(10)    NOT NULL,
+    DAT_DEBUT        DATE            NOT NULL,
+    DAT_FICHE        DATE,
+    NUM_MODELE       VARCHAR2(10),
+    OBS              VARCHAR2(200),
+    TOT              NUMBER,
+    MOYENNE          NUMBER(5,2),
+    ETAT             VARCHAR2(1),
+    ID_FICHE_EVAL_STAGE NUMBER,
+    CONSTRAINT PK_FICHE_EVAL_STAGE PRIMARY KEY (COD_SOC, MAT_PERS, DAT_DEBUT),
+    CONSTRAINT FK_FICHE_EVAL_STAGE FOREIGN KEY (COD_SOC, MAT_PERS, DAT_DEBUT)
+        REFERENCES STAGE (COD_SOC, MAT_PERS, DAT_DEBUT),
+    CONSTRAINT FK_FICHE_MODELE FOREIGN KEY (NUM_MODELE)
+        REFERENCES MODELE_EVALUATION (NUM_MODELE)
+);
+
+COMMENT ON TABLE FICHE_EVAL_STAGE IS 'Fiche d''évaluation du stage probatoire';
+COMMENT ON COLUMN FICHE_EVAL_STAGE.COD_SOC IS 'Code structure sanitaire';
+COMMENT ON COLUMN FICHE_EVAL_STAGE.MAT_PERS IS 'Matricule personnel (stagiaire)';
+COMMENT ON COLUMN FICHE_EVAL_STAGE.DAT_DEBUT IS 'Date début du stage';
+COMMENT ON COLUMN FICHE_EVAL_STAGE.DAT_FICHE IS 'Date de création de la fiche d''évaluation';
+COMMENT ON COLUMN FICHE_EVAL_STAGE.NUM_MODELE IS 'Modèle d''évaluation utilisé';
+COMMENT ON COLUMN FICHE_EVAL_STAGE.OBS IS 'Observations';
+COMMENT ON COLUMN FICHE_EVAL_STAGE.TOT IS 'Score total obtenu';
+COMMENT ON COLUMN FICHE_EVAL_STAGE.MOYENNE IS 'Moyenne obtenue';
+COMMENT ON COLUMN FICHE_EVAL_STAGE.ETAT IS 'I=instance, V=validé';
+
+-- ----------------------------------------------------------------------------
+-- 7F.7 DET_EVAL_STAGE : Détails de l''évaluation de stage par critère
+-- FK vers FICHE_EVAL_STAGE et VALEUR_CRITERE
+-- ----------------------------------------------------------------------------
+CREATE TABLE DET_EVAL_STAGE (
+    COD_SOC          VARCHAR2(4)     NOT NULL,
+    MAT_PERS         VARCHAR2(10)    NOT NULL,
+    DAT_DEBUT        DATE            NOT NULL,
+    COD_CRIT         VARCHAR2(4)     NOT NULL,
+    COD_VAL          VARCHAR2(4),
+    VALEUR           NUMBER(17,2),
+    NUM_MODELE       VARCHAR2(10),
+    NOTE1            NUMBER(8,2),
+    NOTE2            NUMBER(8,2),
+    APPRECIATION1    VARCHAR2(100),
+    APPRECIATION2    VARCHAR2(100),
+    COMMENTAIRE      VARCHAR2(100),
+    ID_DET_EVAL_STAGE NUMBER,
+    CONSTRAINT PK_DET_EVAL_STAGE PRIMARY KEY (COD_SOC, MAT_PERS, DAT_DEBUT, COD_CRIT),
+    CONSTRAINT FK_DET_EVAL_STAGE FOREIGN KEY (COD_SOC, MAT_PERS, DAT_DEBUT)
+        REFERENCES FICHE_EVAL_STAGE (COD_SOC, MAT_PERS, DAT_DEBUT),
+    CONSTRAINT FK_DET_FICHE_VALEUR FOREIGN KEY (COD_VAL)
+        REFERENCES VALEUR_CRITERE (COD_VAL)
+);
+
+COMMENT ON TABLE DET_EVAL_STAGE IS 'Détails de l''évaluation de stage par critère';
+COMMENT ON COLUMN DET_EVAL_STAGE.COD_SOC IS 'Code structure sanitaire';
+COMMENT ON COLUMN DET_EVAL_STAGE.MAT_PERS IS 'Matricule personnel (stagiaire)';
+COMMENT ON COLUMN DET_EVAL_STAGE.DAT_DEBUT IS 'Date début du stage';
+COMMENT ON COLUMN DET_EVAL_STAGE.COD_CRIT IS 'Code critère d''évaluation';
+COMMENT ON COLUMN DET_EVAL_STAGE.COD_VAL IS 'Valeur de l''évaluation';
+COMMENT ON COLUMN DET_EVAL_STAGE.VALEUR IS 'Note attribuée';
+COMMENT ON COLUMN DET_EVAL_STAGE.NUM_MODELE IS 'Modèle d''évaluation';
+COMMENT ON COLUMN DET_EVAL_STAGE.NOTE1 IS 'Note évaluateur 1';
+COMMENT ON COLUMN DET_EVAL_STAGE.NOTE2 IS 'Note évaluateur 2';
+COMMENT ON COLUMN DET_EVAL_STAGE.APPRECIATION1 IS 'Appréciation évaluateur 1';
+COMMENT ON COLUMN DET_EVAL_STAGE.APPRECIATION2 IS 'Appréciation évaluateur 2';
+COMMENT ON COLUMN DET_EVAL_STAGE.COMMENTAIRE IS 'Commentaire général';
+
 -- ============================================================================
 -- END OF DDL
 -- ============================================================================
